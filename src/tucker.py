@@ -58,7 +58,7 @@ class Tucker:
         return tuple([factor.shape[1] for factor in self.factors])
 
     @property
-    def ml_rank(self):
+    def rank(self):
         """
         Get ranks of the Tucker in amount of ``ndim``.
 
@@ -95,12 +95,12 @@ class Tucker:
         :rtype: `Tucker`
         """
         factors = []
-        core = jnp.zeros(jnp.array(self.ml_rank) + jnp.array(other.ml_rank), dtype=self.dtype)
+        core = jnp.zeros(jnp.array(self.rank) + jnp.array(other.rank), dtype=self.dtype)
         sub_core_slice1 = []
         sub_core_slice2 = []
         for i in range(self.ndim):
-            sub_core_slice1.append(slice(None, self.ml_rank[i]))
-            sub_core_slice2.append(slice(self.ml_rank[i], None))
+            sub_core_slice1.append(slice(None, self.rank[i]))
+            sub_core_slice2.append(slice(self.rank[i], None))
             factors.append(jnp.concatenate((self.factors[i], other.factors[i]), axis=1))
 
         core[sub_core_slice1] = self.core
@@ -143,7 +143,7 @@ class Tucker:
 
     def round(self, eps=1e-14):
         """
-        HOSVD rounding procedure, returns a `Tucker` with smaller `ml-ranks`.
+        HOSVD rounding procedure, returns a `Tucker` with smaller `ranks`.
 
         :return: `Tucker` with reduced ranks.
         :rtype: `Tucker`
