@@ -195,20 +195,26 @@ class Tucker:
         new_tensor.factors[k] = mat @ new_tensor.factors[k]
         return new_tensor
 
-    def norm(self):
+    def norm(self, qr_based=False):
         """
         Frobenius norm of `Tucker`.
 
-        :return: non-negative number which is the Frobenius norm of `Tucker`
-        :rtype: `float`
+        :param qr_based: whether to use stable QR-based implementation of norm, which is not differentiable,
+        or unstable but differentiable implementation based on inner product. By default differentiable implementation
+        is used
+        :return: non-negative number which is
+        the Frobenius norm of `Tucker` :rtype: `float`
         """
-        core_factors = []
-        for i in range(self.ndim):
-            core_factors.append(jnp.linalg.qr(self.factors[i])[1])
+        if qr_based:
+            core_factors = []
+            for i in range(self.ndim):
+                core_factors.append(jnp.linalg.qr(self.factors[i])[1])
 
-        new_tensor = Tucker(self.core, core_factors)
-        new_tensor = new_tensor.full()
-        return np.linalg.norm(new_tensor)
+            new_tensor = Tucker(self.core, core_factors)
+            new_tensor = new_tensor.full()
+            return np.linalg.norm(new_tensor)
+
+        return jnp.sqrt(self.flat_inner(self))
 
     def full(self):
         """
