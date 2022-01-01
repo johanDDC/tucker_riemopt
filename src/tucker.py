@@ -12,14 +12,17 @@ class Tucker:
     factors: List[jnp.array]
 
     @classmethod
-    def full2tuck(cls, T, eps=1e-14):
+    def full2tuck(cls, T : jnp.array, eps=1e-14):
         """
         Convert full tensor T to Tucker by applying HOSVD algorithm.
 
         :param T: Tensor in dense format.
         :type T: jnp.array
         :rtype: Tucker
+        :raises [ValueError]: if `eps` < 0
        """
+        if eps < 0:
+            raise ValueError("eps should be greater or equal than 0")
         d = len(T.shape)
         modes = jnp.arange(0, d)
         factors = []
@@ -147,7 +150,10 @@ class Tucker:
 
         :return: `Tucker` with reduced ranks.
         :rtype: `Tucker`
+        :raises [ValueError]: if `eps` < 0
         """
+        if eps < 0:
+            raise ValueError("eps should be greater or equal than 0")
         factors = [None] * self.ndim
         intermediate_factors = [None] * self.ndim
         for i in range(self.ndim):
@@ -175,11 +181,27 @@ class Tucker:
         return jnp.squeeze(jnp.einsum(f"{inds},{inds}->", new_tensor.full(), other.core))
 
     def k_mode_product(self, k, mat):
+        """
+        K-mode tensor-matrix product.
+
+        :param k: mode id from 0 to ndim - 1
+        :return: the result of k-mode tensor-matrix product
+        :rtype: `Tucker`
+        :raises [ValueError]: if `k` not from valid range
+        """
+        if k < 0 or k >= self.ndim:
+            raise ValueError(f"k shoduld be from 0 to {self.ndim - 1}")
         new_tensor = copy(self)
         new_tensor.factors[k] = mat @ new_tensor.factors[k]
         return new_tensor
 
     def norm(self):
+        """
+        Frobenius norm of `Tucker`.
+
+        :return: non-negative number which is the Frobenius norm of `Tucker`
+        :rtype: `float`
+        """
         core_factors = []
         for i in range(self.ndim):
             core_factors.append(jnp.linalg.qr(self.factors[i])[1])
@@ -189,6 +211,12 @@ class Tucker:
         return np.linalg.norm(new_tensor)
 
     def full(self):
+        """
+        Dense representation of `Tucker`.
+
+        :return: Dense tensor
+        :rtype: `jnp.array`
+        """
         core_letters = ascii_letters[:self.ndim]
         factor_letters = ""
         tensor_letters = ""
