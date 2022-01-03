@@ -24,29 +24,28 @@ class Tucker:
         if eps < 0:
             raise ValueError("eps should be greater or equal than 0")
         d = len(T.shape)
-        modes = jnp.arange(0, d)
+        modes = list(np.arange(0, d))
         factors = []
         UT = []
         tensor_letters = ascii_letters[:d]
         factor_letters = ""
         core_letters = ""
         for i, k in enumerate(range(d)):
-            unfolding = jnp.transpose(T, [modes[:k + 1], modes[k + 1:]])
-            unfolding = jnp.reshape(unfolding, [T.shape[k], -1], order="F")
+            unfolding = jnp.transpose(T, [modes[k], *(modes[:k] + modes[k+1:])])
+            unfolding = jnp.reshape(unfolding, (T.shape[k], -1), order="F")
             u, s, _ = jnp.linalg.svd(unfolding, full_matrices=False)
             # Search for preferable truncation
             eps_svd = eps / jnp.sqrt(d) * jnp.sqrt(s.T @ s)
             cumsum = jnp.cumsum(s[::-1])
-            cumsum = (cumsum <= eps_svd)[::-1]
-            rank = cumsum.argmin()
-            print(cumsum, rank)
+            cumsum = (cumsum <= eps_svd)
+            rank = len(s) - cumsum.argmin()
             u = u[:, :rank]
             factors.append(u)
             UT.append(u.T)
             factor_letters += f"{ascii_letters[d + i]}{ascii_letters[i]},"
             core_letters += ascii_letters[d + i]
 
-        einsum_str = tensor_letters + factor_letters[:-1] + "->" + core_letters
+        einsum_str = tensor_letters + "," + factor_letters[:-1] + "->" + core_letters
         core = jnp.einsum(einsum_str, T, *UT)
         return cls(core, factors)
 
@@ -98,7 +97,7 @@ class Tucker:
         :rtype: `Tucker`
         """
         factors = []
-        core = jnp.zeros(jnp.array(self.rank) + jnp.array(other.rank), dtype=self.dtype)
+        core = np.zeros(jnp.array(self.rank) + jnp.array(other.rank), dtype=self.dtype)
         sub_core_slice1 = []
         sub_core_slice2 = []
         for i in range(self.ndim):
@@ -106,8 +105,9 @@ class Tucker:
             sub_core_slice2.append(slice(self.rank[i], None))
             factors.append(jnp.concatenate((self.factors[i], other.factors[i]), axis=1))
 
-        core[sub_core_slice1] = self.core
-        core[sub_core_slice2] = other.core
+        core[tuple(sub_core_slice1)] = self.core
+        core[tuple(sub_core_slice2)] = other.core
+        core = jnp.array(core)
         return Tucker(core, factors)
 
     def __mul__(self, other):
@@ -133,8 +133,7 @@ class Tucker:
         :rtype: `Tucker`
         """
         new_tensor = copy(self)
-        new_tensor.core = a * new_tensor.core
-        return new_tensor
+        return Tucker(a * new_tensor.core, new_tensor.factors)
 
     def __neg__(self):
         new_tensor = copy(self)
@@ -230,5 +229,6 @@ class Tucker:
             factor_letters += f"{ascii_letters[self.ndim + i]}{ascii_letters[i]},"
             tensor_letters += ascii_letters[self.ndim + i]
 
-        einsum_str = core_letters + factor_letters[:-1] + "->" + tensor_letters
+        einsum_str = core_letters + "," + factor_letters[:-1] + "->" + tensor_letters
+
         return jnp.einsum(einsum_str, self.core, *self.factors)
