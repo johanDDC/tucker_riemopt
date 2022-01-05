@@ -57,7 +57,7 @@ class Tucker:
         :return: Tucker shape
         :rtype: tuple
         """
-        return tuple([factor.shape[1] for factor in self.factors])
+        return tuple([factor.shape[0] for factor in self.factors])
 
     @property
     def rank(self):

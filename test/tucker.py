@@ -15,7 +15,7 @@ def createTestTensor(n = 4):
     return A
 
 class TuckerTensorTest(jtu.JaxTestCase):
-    n = 1000
+    n = 4
 
     def testFull2Tuck(self):
         A = createTestTensor(self.n)
