@@ -32,3 +32,7 @@ def project(what : Tucker, where : Tucker):
     return projection
 
 
+def grad(f: Callable):
+    def _grad(x : Tucker):
+        return project(jax.grad(f)(x))
+    return _grad
