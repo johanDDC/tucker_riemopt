@@ -12,38 +12,40 @@ class Tucker:
     factors: List[jnp.array]
 
     @classmethod
-    def full2tuck(cls, T, eps=1e-14):
+    def full2tuck(cls, T : jnp.array, max_rank=10, eps=1e-14):
         """
         Convert full tensor T to Tucker by applying HOSVD algorithm.
 
         :param T: Tensor in dense format.
         :type T: jnp.array
         :rtype: Tucker
+        :raises [ValueError]: if `eps` < 0
        """
+        if eps < 0:
+            raise ValueError("eps should be greater or equal than 0")
         d = len(T.shape)
-        modes = jnp.arange(0, d)
+        modes = list(np.arange(0, d))
         factors = []
         UT = []
         tensor_letters = ascii_letters[:d]
         factor_letters = ""
         core_letters = ""
         for i, k in enumerate(range(d)):
-            unfolding = jnp.transpose(T, [modes[:k + 1], modes[k + 1:]])
-            unfolding = jnp.reshape(unfolding, [T.shape[k], -1], order="F")
+            unfolding = jnp.transpose(T, [modes[k], *(modes[:k] + modes[k+1:])])
+            unfolding = jnp.reshape(unfolding, (T.shape[k], -1), order="F")
             u, s, _ = jnp.linalg.svd(unfolding, full_matrices=False)
             # Search for preferable truncation
             eps_svd = eps / jnp.sqrt(d) * jnp.sqrt(s.T @ s)
             cumsum = jnp.cumsum(s[::-1])
-            cumsum = (cumsum <= eps_svd)[::-1]
-            rank = cumsum.argmin()
-            print(cumsum, rank)
+            cumsum = (cumsum <= eps_svd)
+            rank = min(max_rank, len(s) - cumsum.argmin())
             u = u[:, :rank]
             factors.append(u)
             UT.append(u.T)
             factor_letters += f"{ascii_letters[d + i]}{ascii_letters[i]},"
             core_letters += ascii_letters[d + i]
 
-        einsum_str = tensor_letters + factor_letters[:-1] + "->" + core_letters
+        einsum_str = tensor_letters + "," + factor_letters[:-1] + "->" + core_letters
         core = jnp.einsum(einsum_str, T, *UT)
         return cls(core, factors)
 
@@ -55,10 +57,10 @@ class Tucker:
         :return: Tucker shape
         :rtype: tuple
         """
-        return tuple([factor.shape[1] for factor in self.factors])
+        return tuple([factor.shape[0] for factor in self.factors])
 
     @property
-    def ml_rank(self):
+    def rank(self):
         """
         Get ranks of the Tucker in amount of ``ndim``.
 
@@ -95,16 +97,17 @@ class Tucker:
         :rtype: `Tucker`
         """
         factors = []
-        core = jnp.zeros(jnp.array(self.ml_rank) + jnp.array(other.ml_rank), dtype=self.dtype)
+        core = np.zeros(jnp.array(self.rank) + jnp.array(other.rank), dtype=self.dtype)
         sub_core_slice1 = []
         sub_core_slice2 = []
         for i in range(self.ndim):
-            sub_core_slice1.append(slice(None, self.ml_rank[i]))
-            sub_core_slice2.append(slice(self.ml_rank[i], None))
+            sub_core_slice1.append(slice(None, self.rank[i]))
+            sub_core_slice2.append(slice(self.rank[i], None))
             factors.append(jnp.concatenate((self.factors[i], other.factors[i]), axis=1))
 
-        core[sub_core_slice1] = self.core
-        core[sub_core_slice2] = other.core
+        core[tuple(sub_core_slice1)] = self.core
+        core[tuple(sub_core_slice2)] = other.core
+        core = jnp.array(core)
         return Tucker(core, factors)
 
     def __mul__(self, other):
@@ -130,8 +133,7 @@ class Tucker:
         :rtype: `Tucker`
         """
         new_tensor = copy(self)
-        new_tensor.core = a * new_tensor.core
-        return new_tensor
+        return Tucker(a * new_tensor.core, new_tensor.factors)
 
     def __neg__(self):
         new_tensor = copy(self)
@@ -141,20 +143,23 @@ class Tucker:
         other = -other
         return self + other
 
-    def round(self, eps=1e-14):
+    def round(self, max_rank=10, eps=1e-14):
         """
-        HOSVD rounding procedure, returns a `Tucker` with smaller `ml-ranks`.
+        HOSVD rounding procedure, returns a `Tucker` with smaller `ranks`.
 
         :return: `Tucker` with reduced ranks.
         :rtype: `Tucker`
+        :raises [ValueError]: if `eps` < 0
         """
+        if eps < 0:
+            raise ValueError("eps should be greater or equal than 0")
         factors = [None] * self.ndim
         intermediate_factors = [None] * self.ndim
         for i in range(self.ndim):
             factors[i], intermediate_factors[i] = jnp.linalg.qr(self.factors[i])
 
         intermediate_tensor = Tucker(self.core, intermediate_factors)
-        intermediate_tensor = Tucker.full2tuck(intermediate_tensor.full(), eps)
+        intermediate_tensor = Tucker.full2tuck(intermediate_tensor.full(), max_rank, eps)
         core = intermediate_tensor.core
         for i in range(self.ndim):
             factors[i] = factors[i] @ intermediate_tensor.factors[i]
@@ -167,28 +172,57 @@ class Tucker:
         :rerurn: the result of inner product
         :rtype: float
         """
-        new_tensor = copy(self)
+        new_factors = []
         for i in range(self.ndim):
-            new_tensor.factors[i] = other.factors[i].T @ new_tensor.factors[i]
+            new_factors.append(other.factors[i].T @ self.factors[i])
 
-        inds = ascii_letters[:self.ndim]
-        return jnp.squeeze(jnp.einsum(f"{inds},{inds}->", new_tensor.full(), other.core))
+        new_tensor = Tucker(self.core, new_factors)
+
+        return jnp.sum(new_tensor.full() * other.core)
 
     def k_mode_product(self, k, mat):
+        """
+        K-mode tensor-matrix product.
+
+        :param k: mode id from 0 to ndim - 1
+        :return: the result of k-mode tensor-matrix product
+        :rtype: `Tucker`
+        :raises [ValueError]: if `k` not from valid range
+        """
+        if k < 0 or k >= self.ndim:
+            raise ValueError(f"k shoduld be from 0 to {self.ndim - 1}")
         new_tensor = copy(self)
         new_tensor.factors[k] = mat @ new_tensor.factors[k]
         return new_tensor
 
-    def norm(self):
-        core_factors = []
-        for i in range(self.ndim):
-            core_factors.append(jnp.linalg.qr(self.factors[i])[1])
+    def norm(self, qr_based=False):
+        """
+        Frobenius norm of `Tucker`.
 
-        new_tensor = Tucker(self.core, core_factors)
-        new_tensor = new_tensor.full()
-        return np.linalg.norm(new_tensor)
+        :param qr_based: whether to use stable QR-based implementation of norm, which is not differentiable,
+        or unstable but differentiable implementation based on inner product. By default differentiable implementation
+        is used
+        :return: non-negative number which is
+        the Frobenius norm of `Tucker` :rtype: `float`
+        """
+        if qr_based:
+            core_factors = []
+            for i in range(self.ndim):
+                core_factors.append(jnp.linalg.qr(self.factors[i])[1])
+
+            new_tensor = Tucker(self.core, core_factors)
+            new_tensor = new_tensor.full()
+            return np.linalg.norm(new_tensor)
+
+        return jnp.sqrt(self.flat_inner(self))
 
     def full(self):
+        """
+        Dense representation of `Tucker`.
+
+        :return: Dense tensor
+        :rtype: `jnp.array`
+        """
         core_letters = ascii_letters[:self.ndim]
         factor_letters = ""
         tensor_letters = ""
@@ -196,5 +230,6 @@ class Tucker:
             factor_letters += f"{ascii_letters[self.ndim + i]}{ascii_letters[i]},"
             tensor_letters += ascii_letters[self.ndim + i]
 
-        einsum_str = core_letters + factor_letters[:-1] + "->" + tensor_letters
+        einsum_str = core_letters + "," + factor_letters[:-1] + "->" + tensor_letters
+
         return jnp.einsum(einsum_str, self.core, *self.factors)
