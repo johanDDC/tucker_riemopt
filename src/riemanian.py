@@ -2,6 +2,7 @@ from typing import Callable
 
 import jax
 import jax.numpy as jnp
+from copy import deepcopy
 
 from tucker import Tucker
 
@@ -15,15 +16,16 @@ def _construct_deltas(what : Tucker, where : Tucker):
                                 .reshape((where.core.shape[i], -1), order="F")
         pinv = jnp.linalg.pinv(where_core_unfolding)
         main_contraction = Tucker(what.core, new_factors[:i] + [what.factors[i]] + new_factors[i+1:])
-        main_contraction = jnp.transpose(main_contraction, [modes[i], *(modes[:i] + modes[i + 1:])]) \
+        main_contraction = jnp.transpose(main_contraction.full(), [modes[i], *(modes[:i] + modes[i + 1:])]) \
             .reshape((main_contraction.shape[i], -1), order="F")
         main_contraction @= pinv
-        projected_part = where.factors[i] @ (where.factors[i] @ main_contraction)
+        projected_part = where.factors[i] @ (where.factors[i].T @ main_contraction)
         delta_factors.append(main_contraction - projected_part)
 
     return [delta_core, delta_factors]
 
 def project(what : Tucker, where : Tucker):
+    # print("what", what.shape, "where", where.shape)
     delta_core, delta_factors = _construct_deltas(what, where)
     projection = Tucker(delta_core, where.factors)
     for i in range(what.ndim):
@@ -34,5 +36,7 @@ def project(what : Tucker, where : Tucker):
 
 def grad(f: Callable):
     def _grad(x : Tucker):
-        return project(jax.grad(f)(x), x)
+        x_copy = deepcopy(x)
+        _, grad_X = jax.value_and_grad(f)(x)
+        return project(grad_X, x_copy)
     return _grad
