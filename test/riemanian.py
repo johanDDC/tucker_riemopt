@@ -1,5 +1,4 @@
 import jax
-import jax.numpy as jnp
 import jax.test_util as jtu
 
 import src.riemanian as riemann
@@ -19,5 +18,5 @@ class RiemannTest(jtu.JaxTestCase):
                             jax.random.normal(rng, (self.n, 3))])
         f = lambda x: 0.5 * tensor.flat_inner(x) ** 2
         actual_grad = tensor
-        riemann_grad = riemann.grad(f)(tensor)
+        riemann_grad = riemann.grad(f)(tensor).round()
         self.assertAllClose(actual_grad.full(), riemann_grad.full())
