@@ -48,12 +48,10 @@ def g(T1, core, factors):
 def compute_gradient_projection(T):
     """
     Input
-        inds: list of N lists representing indices of tensor A
-        vals: np.array of size N: values of A in indices inds
         X: tensor from manifold
         
      Output
-        proj: projections of tensor A onto the tangent space
+        proj: projections of gradient onto the tangent space
     """
     dg_dS = jax.grad(g, argnums=1)
     dg_dU = jax.grad(g, argnums=2)
@@ -67,10 +65,8 @@ def compute_gradient_projection(T):
 def optimize(f, X0, maxiter=10):
     """
     Input
-        inds: list of N lists representing indices of tensor A
-        vals: np.array of size N: values of A in indices inds
-        rank: target rank of approximation
-        X0: initial approximation. If None, chosen randomly
+        f: function to maximize
+        X0: first approximation
         maxiter: number of iterations to perform
 
     Output
