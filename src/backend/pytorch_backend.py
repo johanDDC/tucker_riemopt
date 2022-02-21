@@ -4,36 +4,33 @@ from distutils.version import LooseVersion
 try:
     import torch
 except ImportError as error:
-    message = ('Impossible to import PyTorch.\n'
-               'To use TensorLy with the PyTorch backend, '
-               'you must first install PyTorch!')
+    message = ("Impossible to import PyTorch.\n"
+               "To use Tucker riemopt with the PyTorch backend, "
+               "you must first install PyTorch!")
     raise ImportError(message) from error
 
 import numpy as np
+from .backend import Backend
 
-from .core import Backend
-
-linalg_lstsq_avail = LooseVersion(torch.__version__) >= LooseVersion('1.9.0')
+linalg_lstsq_avail = LooseVersion(torch.__version__) >= LooseVersion("1.9.0")
 
 
-class PyTorchBackend(Backend, backend_name='pytorch'):
-
+class PyTorchBackend(Backend, backend_name="pytorch"):
     @property
     def type(self):
         return type(self.tensor([]))
 
     @staticmethod
     def context(tensor):
-        return {'dtype': tensor.dtype,
-                'device': tensor.device,
-                'requires_grad': tensor.requires_grad}
+        return {"dtype": tensor.dtype,
+                "device": tensor.device,
+                "requires_grad": tensor.requires_grad}
 
     @staticmethod
-    def tensor(data, dtype=torch.float32, device='cpu', requires_grad=False):
+    def tensor(data, dtype=torch.float32, device="cpu", requires_grad=False):
         if isinstance(data, np.ndarray):
             data = data.copy()
-        return torch.tensor(data, dtype=dtype, device=device,
-                            requires_grad=requires_grad)
+        return torch.tensor(data, dtype=dtype, device=device, requires_grad=requires_grad)
 
     @staticmethod
     def to_numpy(tensor):
@@ -102,15 +99,13 @@ class PyTorchBackend(Backend, backend_name='pytorch'):
 
     @staticmethod
     def norm(tensor, order=None, axis=None):
-        # pytorch does not accept `None` for any keyword arguments. additionally,
-        # pytorch doesn't seems to support keyword arguments in the first place
         kwds = {}
         if axis is not None:
-            kwds['dim'] = axis
-        if order and order != 'inf':
-            kwds['p'] = order
+            kwds["dim"] = axis
+        if order and order != "inf":
+            kwds["p"] = order
 
-        if order == 'inf':
+        if order == "inf":
             res = torch.max(torch.abs(tensor), **kwds)
             if axis is not None:
                 return res[0]  # ignore indices output
@@ -193,22 +188,7 @@ class PyTorchBackend(Backend, backend_name='pytorch'):
         tensor.index_put_(index, values)
 
     def solve(self, matrix1, matrix2):
-        """Legacy only, deprecated from PyTorch 1.8.0
-        Solve a linear system of equation
-        Notes
-        -----
-        Previously, this was implemented as follows::
-            if self.ndim(matrix2) < 2:
-                # Currently, gesv doesn't support vectors for matrix2
-                # So we instead solve a least square problem...
-                solution, _ = torch.gels(matrix2, matrix1)
-            else:
-                solution, _ = torch.gesv(matrix2, matrix1)
-            return solution
-        Deprecated from PyTorch 1.8.0
-        """
         if self.ndim(matrix2) < 2:
-            # Currently, solve doesn't support vectors for matrix2
             solution, _ = torch.solve(matrix2.unsqueeze(1), matrix1)
         else:
             solution, _ = torch.solve(matrix2, matrix1)
@@ -217,7 +197,7 @@ class PyTorchBackend(Backend, backend_name='pytorch'):
     @staticmethod
     def lstsq(a, b):
         if linalg_lstsq_avail:
-            x, residuals, _, _ = torch.linalg.lstsq(a, b, rcond=None, driver='gelsd')
+            x, residuals, _, _ = torch.linalg.lstsq(a, b, rcond=None, driver="gelsd")
             return x, residuals
         else:
             n = a.shape[1]
@@ -228,7 +208,6 @@ class PyTorchBackend(Backend, backend_name='pytorch'):
 
     @staticmethod
     def eigh(tensor):
-        """Legacy only, deprecated from PyTorch 1.8.0"""
         return torch.symeig(tensor, eigenvectors=True)
 
     @staticmethod
@@ -243,24 +222,22 @@ class PyTorchBackend(Backend, backend_name='pytorch'):
 
 
 # Register the other functions
-for name in ['float64', 'float32', 'int64', 'int32', 'complex128', 'complex64',
-             'is_tensor', 'ones', 'zeros', 'any', 'trace', 'count_nonzero', 'tensordot',
-             'zeros_like', 'eye', 'min', 'prod', 'abs', 'matmul',
-             'sqrt', 'sign', 'where', 'conj', 'finfo', 'einsum', 'log2', 'sin', 'cos', 'squeeze']:
+for name in ["float64", "float32", "int64", "int32", "complex128", "complex64",
+             "is_tensor", "ones", "zeros", "any", "trace", "count_nonzero",
+             "zeros_like", "eye", "min", "prod", "abs", "matmul",
+             "sqrt", "sign", "where", "conj", "finfo", "einsum", "log2", "sin", "cos", "squeeze"]:
     PyTorchBackend.register_method(name, getattr(torch, name))
 
-# PyTorch 1.8.0 has a much better NumPy interface but somoe haven't updated yet
-if LooseVersion(torch.__version__) < LooseVersion('1.8.0'):
-    # Old version, will be removed in the future
-    warnings.warn(f'You are using an old version of PyTorch ({torch.__version__}). '
-                  'We recommend upgrading to a newest one, e.g. >1.8.0.')
-    PyTorchBackend.register_method('moveaxis', getattr(torch, 'movedim'))
-    PyTorchBackend.register_method('qr', getattr(torch, 'qr'))
+# PyTorch 1.8.0 has a much better NumPy interface but somoe haven"t updated yet
+if LooseVersion(torch.__version__) < LooseVersion("1.8.0"):
+    warnings.warn(f"You are using an old version of PyTorch ({torch.__version__}). "
+                  "We recommend upgrading to a newest one, e.g. >1.8.0.")
+    PyTorchBackend.register_method("qr", getattr(torch, "qr"))
 
 else:
     # New PyTorch NumPy interface
-    for name in ['kron', 'moveaxis']:
+    for name in ["kron"]:
         PyTorchBackend.register_method(name, getattr(torch, name))
 
-    for name in ['solve', 'qr', 'svd', 'eigh']:
+    for name in ["solve", "qr", "svd", "eigh"]:
         PyTorchBackend.register_method(name, getattr(torch.linalg, name))
