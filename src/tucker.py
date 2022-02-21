@@ -1,23 +1,23 @@
 from typing import List
-import jax.numpy as jnp
 import numpy as np
 from flax import struct
 from string import ascii_letters
 from copy import copy
+from src import backend as back
 
 
 @struct.dataclass
 class Tucker:
-    core: jnp.array
-    factors: List[jnp.array]
+    core: back.type
+    factors: List[back.type]
 
     @classmethod
-    def full2tuck(cls, T : jnp.array, eps=1e-14):
+    def full2tuck(cls, T : back.type, eps=1e-14):
         """
         Convert full tensor T to Tucker by applying HOSVD algorithm.
 
         :param T: Tensor in dense format.
-        :type T: jnp.array
+        :type T: backend.type
         :rtype: Tucker
         :raises [ValueError]: if `eps` < 0
        """
@@ -31,13 +31,13 @@ class Tucker:
         factor_letters = ""
         core_letters = ""
         for i, k in enumerate(range(d)):
-            unfolding = jnp.transpose(T, [modes[k], *(modes[:k] + modes[k+1:])])
-            unfolding = jnp.reshape(unfolding, (T.shape[k], -1), order="F")
-            u, s, _ = jnp.linalg.svd(unfolding, full_matrices=False)
+            unfolding = back.transpose(T, [modes[k], *(modes[:k] + modes[k+1:])])
+            unfolding = back.reshape(unfolding, (T.shape[k], -1), order="F")
+            u, s, _ = back.svd(unfolding, full_matrices=False)
             # Search for preferable truncation
-            eps_svd = eps / jnp.sqrt(d) * jnp.sqrt(s.T @ s)
-            cumsum = jnp.cumsum(s[::-1])
-            cumsum = (cumsum <= eps_svd)
+            eps_svd = eps / np.sqrt(d) * np.sqrt(s.T @ s)
+            cumsum = np.cumsum(list(reversed(s)))
+            cumsum = (cumsum <= back.to_numpy(eps_svd))
             rank = len(s) - cumsum.argmin()
             u = u[:, :rank]
             factors.append(u)
@@ -46,7 +46,7 @@ class Tucker:
             core_letters += ascii_letters[d + i]
 
         einsum_str = tensor_letters + "," + factor_letters[:-1] + "->" + core_letters
-        core = jnp.einsum(einsum_str, T, *UT)
+        core = back.einsum(einsum_str, T, *UT)
         return cls(core, factors)
 
     @property
@@ -97,17 +97,18 @@ class Tucker:
         :rtype: `Tucker`
         """
         factors = []
-        core = np.zeros(jnp.array(self.rank) + jnp.array(other.rank), dtype=self.dtype)
+        core = np.zeros(back.to_numpy(back.tensor(self.rank) + back.tensor(other.rank)).astype(np.int32),
+                        dtype=self._cast_backend_dtype(self.dtype))
         sub_core_slice1 = []
         sub_core_slice2 = []
         for i in range(self.ndim):
             sub_core_slice1.append(slice(None, self.rank[i]))
             sub_core_slice2.append(slice(self.rank[i], None))
-            factors.append(jnp.concatenate((self.factors[i], other.factors[i]), axis=1))
+            factors.append(back.concatenate((self.factors[i], other.factors[i]), axis=1))
 
         core[tuple(sub_core_slice1)] = self.core
         core[tuple(sub_core_slice2)] = other.core
-        core = jnp.array(core)
+        core = back.tensor(core, self.dtype)
         return Tucker(core, factors)
 
     def __mul__(self, other):
@@ -117,10 +118,10 @@ class Tucker:
         :return: Elementwise multiplication of two tensors.
         :rtype: `Tucker`
         """
-        core = jnp.kron(self.core, other.core)
+        core = back.kron(self.core, other.core)
         factors = []
         for i in range(self.ndim):
-            factors.append(jnp.einsum('ia,ib->iab', self.factors[i], other.factors[i])\
+            factors.append(back.einsum('ia,ib->iab', self.factors[i], other.factors[i])\
                            .reshape(self.factors[i].shape[0], -1))
 
         return Tucker(core, factors)
@@ -156,7 +157,7 @@ class Tucker:
         factors = [None] * self.ndim
         intermediate_factors = [None] * self.ndim
         for i in range(self.ndim):
-            factors[i], intermediate_factors[i] = jnp.linalg.qr(self.factors[i])
+            factors[i], intermediate_factors[i] = back.qr(self.factors[i])
 
         intermediate_tensor = Tucker(self.core, intermediate_factors)
         intermediate_tensor = Tucker.full2tuck(intermediate_tensor.full(), eps)
@@ -177,7 +178,7 @@ class Tucker:
             new_tensor.factors[i] = other.factors[i].T @ new_tensor.factors[i]
 
         inds = ascii_letters[:self.ndim]
-        return jnp.squeeze(jnp.einsum(f"{inds},{inds}->", new_tensor.full(), other.core))
+        return back.squeeze(back.einsum(f"{inds},{inds}->", new_tensor.full(), other.core))
 
     def k_mode_product(self, k, mat):
         """
@@ -207,20 +208,20 @@ class Tucker:
         if qr_based:
             core_factors = []
             for i in range(self.ndim):
-                core_factors.append(jnp.linalg.qr(self.factors[i])[1])
+                core_factors.append(back.qr(self.factors[i])[1])
 
             new_tensor = Tucker(self.core, core_factors)
             new_tensor = new_tensor.full()
             return np.linalg.norm(new_tensor)
 
-        return jnp.sqrt(self.flat_inner(self))
+        return back.sqrt(self.flat_inner(self))
 
     def full(self):
         """
         Dense representation of `Tucker`.
 
         :return: Dense tensor
-        :rtype: `jnp.array`
+        :rtype: `backend.type`
         """
         core_letters = ascii_letters[:self.ndim]
         factor_letters = ""
@@ -231,4 +232,36 @@ class Tucker:
 
         einsum_str = core_letters + "," + factor_letters[:-1] + "->" + tensor_letters
 
-        return jnp.einsum(einsum_str, self.core, *self.factors)
+        return back.einsum(einsum_str, self.core, *self.factors)
+
+    def _cast_backend_dtype(self, dtype):
+        dtype = str(dtype)
+        dtype = dtype[dtype.find('.') + 1:]
+        if dtype in ["float32", "float"]:
+            return np.float32
+        elif dtype in ["float64", "double"]:
+            return np.float64
+        elif dtype in ["float16", "half"]:
+            return np.float16
+        elif dtype in ["complex32", "complex64"]:
+            return np.complex64
+        elif dtype == "complex128":
+            return np.complex128
+        elif dtype == "complex256":
+            return np.complex256
+        elif dtype in ["uint8", "quint8"]:
+            return np.uint8
+        elif dtype in ["int8", "qint8", "quint4x2", "byte"]:
+            return np.int8
+        elif dtype in ["int16", "short"]:
+            return np.int16
+        elif dtype in ["int32", "int", "qfint32"]:
+            return np.int32
+        elif dtype in ["int64", "long"]:
+            return np.int64
+        elif dtype == "bool":
+            return np.bool8
+        else:
+            return np.float64
+
+

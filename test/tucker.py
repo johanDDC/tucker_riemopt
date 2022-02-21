@@ -1,17 +1,17 @@
-import jax.numpy as jnp
 import jax.test_util as jtu
 
 from src.tucker import Tucker
+from src import backend as back
 
 def createTestTensor(n = 4):
     """
         A_ijk = i + j + k
     """
-    x = jnp.arange(n) + 1
-    e = jnp.ones(n)
-    A = jnp.einsum("i,j,k->ijk", x, e, e) + \
-        jnp.einsum("i,j,k->ijk", e, x, e) + \
-        jnp.einsum("i,j,k->ijk", e, e, x)
+    x = back.arange(n) + 1
+    e = back.ones(n, dtype=back.float64)
+    A = back.einsum("i,j,k->ijk", x, e, e) + \
+        back.einsum("i,j,k->ijk", e, x, e) + \
+        back.einsum("i,j,k->ijk", e, e, x)
     return A
 
 class TuckerTensorTest(jtu.JaxTestCase):
@@ -20,7 +20,7 @@ class TuckerTensorTest(jtu.JaxTestCase):
     def testFull2Tuck(self):
         A = createTestTensor(self.n)
         A_tuck = Tucker.full2tuck(A, 1e-6)
-        self.assertAllClose(A, A_tuck.full())
+        self.assertAllClose(A, A_tuck.full(), rtol=1e-14)
 
     def testAdd(self):
         A = createTestTensor(self.n)
@@ -44,14 +44,14 @@ class TuckerTensorTest(jtu.JaxTestCase):
     def testNorm(self):
         A = createTestTensor(self.n)
         A_tuck = Tucker.full2tuck(A, 1e-6)
-        self.assertAlmostEqual(A_tuck.norm(qr_based=False), jnp.linalg.norm(A), places=4)
-        self.assertAlmostEqual(A_tuck.norm(qr_based=True), jnp.linalg.norm(A), places=4)
+        self.assertAlmostEqual(A_tuck.norm(qr_based=False), back.norm(A), places=4)
+        self.assertAlmostEqual(A_tuck.norm(qr_based=True), back.norm(A), places=4)
 
     def testModeProd(self):
         A = createTestTensor(self.n)
-        Z = jnp.zeros((self.n, self.n, self.n))
+        Z = back.zeros((self.n, self.n, self.n))
         A_tuck = Tucker.full2tuck(A, 1e-6)
-        M = jnp.zeros((self.n, self.n))
+        M = back.zeros((self.n, self.n))
         self.assertAllClose(A_tuck.k_mode_product(0, M).full(), Z)
         self.assertAllClose(A_tuck.k_mode_product(1, M).full(), Z)
         self.assertAllClose(A_tuck.k_mode_product(2, M).full(), Z)
