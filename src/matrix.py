@@ -1,11 +1,9 @@
-from typing import List
 import jax.numpy as jnp
-import numpy as np
 from flax import struct
 from string import ascii_letters
 from copy import copy
 
-from tucker import Tucker
+from src.tucker import Tucker
 
 @struct.dataclass
 class TuckerMatrix(Tucker):
