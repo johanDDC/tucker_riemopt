@@ -1,19 +1,19 @@
-import jax.numpy as jnp
 from flax import struct
 from string import ascii_letters
 from copy import copy
 
+from src import backend as back
 from src.tucker import Tucker
 
 @struct.dataclass
 class TuckerMatrix(Tucker):
-    n: jnp.array
-    m: jnp.array
+    n: back.type
+    m: back.type
 
     @classmethod
-    def full2tuck(cls, T : jnp.array, n=None, m=None, max_rank=10, eps=1e-14):
+    def full2tuck(cls, T : back.type, n=None, m=None, max_rank=10, eps=1e-14):
         T = Tucker.full2tuck(T, max_rank=max_rank, eps=eps)
-        return cls(T.core, T.factors, jnp.array(n), jnp.array(m))
+        return cls(T.core, T.factors, back.tensor(n), back.tensor(m))
 
     def __matmul__(self, other):
         """
@@ -57,7 +57,7 @@ class TuckerMatrix(Tucker):
             einsum_str += l3[i] + l4[i] + ','
         einsum_str = einsum_str[:-1] + '->' + l1 + l5
 
-        new_core = jnp.einsum(einsum_str, self.core, *self.factors[-d2:], other.core, *other.factors[:d2], optimize='optimal')
+        new_core = back.einsum(einsum_str, self.core, *self.factors[-d2:], other.core, *other.factors[:d2], optimize='optimal')
         new_factors = self.factors[:d1]
         if d4 != 0:
             new_factors += other.factors[-d4:]
@@ -65,7 +65,7 @@ class TuckerMatrix(Tucker):
         return TuckerMatrix(new_core, new_factors, d2, d4)
 
     def __rmul__(self, other):
-        if hasattr(other, '__matmul__') and not isinstance(other, jnp.ndarray):
+        if hasattr(other, '__matmul__') and not isinstance(other, back.type):
             return other.__matmul__(self)
         else:
             new_tensor = copy(self)
