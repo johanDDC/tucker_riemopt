@@ -91,6 +91,10 @@ class JaxBackend(Backend, backend_name="jax"):
     def grad(func, x):
         return jax.grad(func)(x)
 
+    @staticmethod
+    def pad(tensor, pad_width, constant_values):
+        return jnp.pad(tensor, pad_width, mode="constant", constant_values=constant_values)
+
 for name in ["int64", "int32", "float64", "float32", "complex128", "complex64", "reshape",
              "where", "transpose", "arange", "ones", "zeros", "flip", "trace", "any",
              "zeros_like", "eye", "kron", "concatenate", "max", "min", "matmul",

@@ -225,6 +225,13 @@ class PyTorchBackend(Backend, backend_name="pytorch"):
         func(x).backward()
         return x.grad
 
+    @staticmethod
+    def pad(tensor, pad_width, constant_values):
+        from torch.nn.functional import pad
+        flat_pad_width = (pair[0], pair[1] for pair in pad_width)
+        flat_pad_width = flat_pad_width[::-1]
+        return pad(tensor, flat_pad_width, "constant", 0)
+
 
 # Register the other functions
 for name in ["float64", "float32", "int64", "int32", "complex128", "complex64",

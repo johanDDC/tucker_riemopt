@@ -308,3 +308,14 @@ class Backend(object):
     @staticmethod
     def grad(func, x):
         raise NotImplementedError
+
+    @staticmethod
+    def pad(tensor, pad_width, constant_values):
+        """
+        Only constant mode is supported
+        :param tensor: tensor to pad
+        :param pad_width: tuple of axis to pad in PRIMAL order
+        :param constant_values: values to fill padded region
+        :return: padded tensor
+        """
+        raise NotImplementedError
