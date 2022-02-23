@@ -220,6 +220,11 @@ class PyTorchBackend(Backend, backend_name="pytorch"):
     def cumsum(tensor, axis=None):
         return torch.cumsum(tensor, dim=-1 if axis is None else axis)
 
+    @staticmethod
+    def grad(func, x):
+        func(x).backward()
+        return x.grad
+
 
 # Register the other functions
 for name in ["float64", "float32", "int64", "int32", "complex128", "complex64",

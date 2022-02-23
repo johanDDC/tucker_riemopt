@@ -87,6 +87,10 @@ class JaxBackend(Backend, backend_name="jax"):
         else:
             return jnp.argsort(tensor, axis=axis)
 
+    @staticmethod
+    def grad(func, x):
+        return jax.grad(func)(x)
+
 for name in ["int64", "int32", "float64", "float32", "complex128", "complex64", "reshape",
              "where", "transpose", "arange", "ones", "zeros", "flip", "trace", "any",
              "zeros_like", "eye", "kron", "concatenate", "max", "min", "matmul",

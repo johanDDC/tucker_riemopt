@@ -304,3 +304,7 @@ class Backend(object):
     @staticmethod
     def cos(x):
         raise NotImplementedError
+
+    @staticmethod
+    def grad(func, x):
+        raise NotImplementedError
