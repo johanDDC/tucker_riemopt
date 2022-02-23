@@ -228,7 +228,10 @@ class PyTorchBackend(Backend, backend_name="pytorch"):
     @staticmethod
     def pad(tensor, pad_width, constant_values):
         from torch.nn.functional import pad
-        flat_pad_width = (pair[0], pair[1] for pair in pad_width)
+        flat_pad_width = []
+        for pair in pad_width:
+            flat_pad_width.append(pair[0])
+            flat_pad_width.append(pair[1])
         flat_pad_width = flat_pad_width[::-1]
         return pad(tensor, flat_pad_width, "constant", 0)
 
