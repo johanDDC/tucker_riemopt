@@ -10,6 +10,7 @@ except ImportError as error:
     raise ImportError(message) from error
 
 import numpy as np
+import typing
 from .backend import Backend
 
 linalg_lstsq_avail = LooseVersion(torch.__version__) >= LooseVersion("1.9.0")
@@ -221,9 +222,18 @@ class PyTorchBackend(Backend, backend_name="pytorch"):
         return torch.cumsum(tensor, dim=-1 if axis is None else axis)
 
     @staticmethod
-    def grad(func, x):
-        func(x).backward()
-        return x.grad
+    def grad(func: typing.Callable, argnums: typing.Union[int, typing.Sequence[int]] = 0):
+        def aux_func(*args):
+            func(args).backward()
+            if type(argnums) is int:
+                return args[argnums].grad
+            else:
+                grads = []
+                for arg in argnums:
+                    grads.append(args[arg].grad)
+                return grads
+
+        return aux_func
 
     @staticmethod
     def pad(tensor, pad_width, constant_values):

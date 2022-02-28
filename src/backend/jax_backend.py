@@ -11,6 +11,7 @@ except ImportError as error:
 
 import numpy
 import copy
+import typing
 
 from .backend import Backend
 
@@ -88,8 +89,8 @@ class JaxBackend(Backend, backend_name="jax"):
             return jnp.argsort(tensor, axis=axis)
 
     @staticmethod
-    def grad(func, x):
-        return jax.grad(func)(x)
+    def grad(func: typing.Callable, argnums: typing.Union[int, typing.Sequence[int]] = 0):
+        return jax.grad(func, argnums=argnums)
 
     @staticmethod
     def pad(tensor, pad_width, constant_values):

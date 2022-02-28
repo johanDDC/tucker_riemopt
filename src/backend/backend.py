@@ -1,6 +1,7 @@
 import warnings
 
 import numpy as np
+import typing
 
 class Backend(object):
     _available_backends = dict()
@@ -306,7 +307,7 @@ class Backend(object):
         raise NotImplementedError
 
     @staticmethod
-    def grad(func, x):
+    def grad(func: typing.Callable, argnums: typing.Union[int, typing.Sequence[int]] = 0):
         raise NotImplementedError
 
     @staticmethod
