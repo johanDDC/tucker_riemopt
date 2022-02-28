@@ -1,14 +1,7 @@
-from typing import Callable
-
-import jax
-import jax.config
-jax.config.update("jax_enable_x64", True)
-
-from src.matrix import TuckerMatrix
 from src.tucker import Tucker
 import numpy as np
-import jax.numpy as jnp
 
+from src import backend as back
 
 def group_cores(core1, core2):
     d = len(core1.shape)
@@ -18,8 +11,8 @@ def group_cores(core1, core2):
     to_concat = core2
 
     for i in range(d):
-        to_concat = jnp.pad(to_concat, [(0, r[j]) if j == i - 1 else (0, 0) for j in range(d)], mode='constant', constant_values=0)
-        new_core = jnp.concatenate([new_core, to_concat], axis=i)
+        to_concat = back.pad(to_concat, [(0, r[j]) if j == i - 1 else (0, 0) for j in range(d)], constant_values=0)
+        new_core = back.concatenate([new_core, to_concat], axis=i)
 
     return new_core
 
@@ -32,13 +25,11 @@ def compute_gradient_projection(T, g):
      Output
         proj: projections of gradient onto the tangent space
     """
-    dg_dS = jax.grad(g, argnums=1)
-    dg_dU = jax.grad(g, argnums=2)
+    dg = back.grad(g, [1, 2])
 
-    dS = dg_dS(T, T.core, [jnp.zeros_like(T.factors[i]) for i in range(T.ndim)])
-    dU = dg_dU(T, T.core, [jnp.zeros_like(T.factors[i]) for i in range(T.ndim)])
+    dS, dU = dg(T, T.core, [back.zeros_like(T.factors[i]) for i in range(T.ndim)])
     dU = [dU[i] - T.factors[i] @ (T.factors[i].T @ dU[i]) for i in range(len(dU))]
-    return Tucker(group_cores(dS, T.core), [jnp.concatenate([T.factors[i], dU[i]], axis=1) for i in range(T.ndim)])
+    return Tucker(group_cores(dS, T.core), [back.concatenate([T.factors[i], dU[i]], axis=1) for i in range(T.ndim)])
 
 
 def optimize(f, g, X0, maxiter=10):
