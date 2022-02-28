@@ -1,11 +1,8 @@
 from unittest import TestCase
 
-import jax
-import jax.config
-jax.config.update("jax_enable_x64", True)
-
 import numpy as np
-import jax.numpy as jnp
+from src import backend as back
+from src import set_backend
 
 from src.tucker import Tucker
 from src.matrix import TuckerMatrix
@@ -17,28 +14,26 @@ from src.riemopt import optimize
 class Test(TestCase):
 
     def testGradProjection(self):
+        set_backend("pytorch")
         np.random.seed(229)
 
-        @jax.jit
         def f_full(A):
             return (A ** 2 - A).sum()
 
-        @jax.jit
         def f(T: Tucker):
             A = T.full()
             return (A ** 2 - A).sum()
 
-        @jax.jit
         def g(T1, core, factors):
-            new_factors = [jnp.concatenate([T1.factors[i], factors[i]], axis=1) for i in range(T1.ndim)]
+            new_factors = [back.concatenate([T1.factors[i], factors[i]], axis=1) for i in range(T1.ndim)]
             new_core = group_cores(core, T1.core)
 
             T = Tucker(new_core, new_factors)
             return f(T)
 
-        full_grad = jax.grad(f_full, argnums=0)
+        full_grad = back.grad(f_full, argnums=0)
 
-        A = np.random.random((4, 4, 4))
+        A = back.randn((4, 4, 4))
         T = Tucker.full2tuck(A)
 
         eucl_grad = full_grad(T.full())
@@ -54,16 +49,14 @@ class Test(TestCase):
         A = Q @ A @ Q.T
         A = TuckerMatrix.full2tuck(A.reshape([2] * 4), [2] * 2, [2] * 2)
 
-        @jax.jit
         def f(T):
             return (T.flat_inner(A @ T)) / T.flat_inner(T)
 
-        @jax.jit
         def g(T1, core, factors):
             d = T1.ndim
             r = T1.rank
 
-            new_factors = [jnp.concatenate([T1.factors[i], factors[i]], axis=1) for i in range(T1.ndim)]
+            new_factors = [back.concatenate([T1.factors[i], factors[i]], axis=1) for i in range(T1.ndim)]
             new_core = group_cores(core, T1.core)
 
             T = Tucker(new_core, new_factors)
