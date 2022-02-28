@@ -23,10 +23,6 @@ class Backend(object):
         setattr(cls, name, staticmethod(func))
 
     @property
-    def type(self):
-        raise NotImplementedError
-
-    @property
     def int64(self):
         raise NotImplementedError
 
@@ -48,6 +44,10 @@ class Backend(object):
 
     @property
     def complex64(self):
+        raise NotImplementedError
+
+    @staticmethod
+    def type():
         raise NotImplementedError
 
     @staticmethod

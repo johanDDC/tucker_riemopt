@@ -17,9 +17,9 @@ linalg_lstsq_avail = LooseVersion(torch.__version__) >= LooseVersion("1.9.0")
 
 
 class PyTorchBackend(Backend, backend_name="pytorch"):
-    @property
-    def type(self):
-        return type(self.tensor([]))
+    @staticmethod
+    def type():
+        return type(PyTorchBackend.tensor([]))
 
     @staticmethod
     def context(tensor):
@@ -223,14 +223,42 @@ class PyTorchBackend(Backend, backend_name="pytorch"):
 
     @staticmethod
     def grad(func: typing.Callable, argnums: typing.Union[int, typing.Sequence[int]] = 0):
+        def grad_tensor(tensor):
+            return tensor.grad
+
+        def grad_list(lst):
+            grads = []
+            for el in lst:
+                grads.append(grad_tensor(el))
+            return grads
+
+        def process_grad(elem):
+            if type(elem) is list:
+                if not type(elem[0]) is PyTorchBackend.type():
+                    raise TypeError("Expected list of torch.tensor, not list of {}".format(type(elem[0])))
+                return grad_list(elem)
+            elif type(elem) is PyTorchBackend.type():
+                return grad_tensor(elem)
+            else:
+                raise TypeError("Unsupported argument type for grad method")
+
+        def set_require_grad(args, argnums):
+            for arg in argnums:
+                if type(args[arg]) is PyTorchBackend.type():
+                    args[arg].requires_grad = True
+                elif type(args[arg]) is list:
+                    set_require_grad(args[arg], np.arange(0, len(args[arg])))
+
+
         def aux_func(*args):
-            func(args).backward()
+            set_require_grad(args, argnums if type(argnums) is list else [argnums])
+            func(*args).backward()
             if type(argnums) is int:
-                return args[argnums].grad
+                return process_grad(args[argnums])
             else:
                 grads = []
                 for arg in argnums:
-                    grads.append(args[arg].grad)
+                    grads.append(process_grad(args[arg]))
                 return grads
 
         return aux_func

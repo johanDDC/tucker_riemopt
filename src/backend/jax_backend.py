@@ -17,9 +17,9 @@ from .backend import Backend
 
 
 class JaxBackend(Backend, backend_name="jax"):
-    @property
-    def type(self):
-        return type(self.tensor([]))
+    @staticmethod
+    def type():
+        return type(JaxBackend.tensor([]))
 
     @staticmethod
     def context(tensor):
