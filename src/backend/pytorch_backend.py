@@ -249,17 +249,29 @@ class PyTorchBackend(Backend, backend_name="pytorch"):
                 elif type(args[arg]) is list:
                     set_require_grad(args[arg], np.arange(0, len(args[arg])))
 
+        def detach(args, argnums):
+            for arg in argnums:
+                if type(args[arg]) is PyTorchBackend.type():
+                    args[arg].grad = None
+                    args[arg].requires_grad = False
+                    # args[arg] = args[arg].detach()
+                elif type(args[arg]) is list:
+                    detach(args[arg], np.arange(0, len(args[arg])))
+
 
         def aux_func(*args):
             set_require_grad(args, argnums if type(argnums) is list else [argnums])
             func(*args).backward()
             if type(argnums) is int:
-                return process_grad(args[argnums])
+                grads = process_grad(args[argnums])
+                detach([grads], [0])
             else:
                 grads = []
                 for arg in argnums:
                     grads.append(process_grad(args[arg]))
-                return grads
+                detach(grads, np.arange(0, len(grads)))
+            detach(args, argnums if type(argnums) is list else [argnums])
+            return grads
 
         return aux_func
 
