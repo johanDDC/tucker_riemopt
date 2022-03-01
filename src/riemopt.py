@@ -17,7 +17,7 @@ def group_cores(core1, core2):
     return new_core
 
 
-def compute_gradient_projection(T, g):
+def compute_gradient_projection(func, T):
     """
     Input
         X: tensor from manifold
@@ -25,6 +25,14 @@ def compute_gradient_projection(T, g):
      Output
         proj: projections of gradient onto the tangent space
     """
+
+    def g(T1, core, factors):
+        new_factors = [back.concatenate([T1.factors[i], factors[i]], axis=1) for i in range(T1.ndim)]
+        new_core = group_cores(core, T1.core)
+
+        T = Tucker(new_core, new_factors)
+        return func(T)
+
     dg = back.grad(g, [1, 2])
 
     dS, dU = dg(T, T.core, [back.zeros_like(T.factors[i]) for i in range(T.ndim)])

@@ -24,20 +24,13 @@ class Test(TestCase):
             A = T.full()
             return (A ** 2 - A).sum()
 
-        def g(T1, core, factors):
-            new_factors = [back.concatenate([T1.factors[i], factors[i]], axis=1) for i in range(T1.ndim)]
-            new_core = group_cores(core, T1.core)
-
-            T = Tucker(new_core, new_factors)
-            return f(T)
-
         full_grad = back.grad(f_full, argnums=0)
 
         A = back.randn((4, 4, 4))
         T = Tucker.full2tuck(A)
 
         eucl_grad = full_grad(T.full())
-        riem_grad = compute_gradient_projection(T, g)
+        riem_grad = compute_gradient_projection(f, T)
 
         assert(np.allclose(back.to_numpy(eucl_grad), back.to_numpy(riem_grad.full()), atol=1e-5))
 
