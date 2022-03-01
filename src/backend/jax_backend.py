@@ -11,14 +11,15 @@ except ImportError as error:
 
 import numpy
 import copy
+import typing
 
 from .backend import Backend
 
 
 class JaxBackend(Backend, backend_name="jax"):
-    @property
-    def type(self):
-        return type(self.tensor([]))
+    @staticmethod
+    def type():
+        return type(JaxBackend.tensor([]))
 
     @staticmethod
     def context(tensor):
@@ -86,6 +87,14 @@ class JaxBackend(Backend, backend_name="jax"):
             return jnp.argsort(-1 * tensor, axis=axis)
         else:
             return jnp.argsort(tensor, axis=axis)
+
+    @staticmethod
+    def grad(func: typing.Callable, argnums: typing.Union[int, typing.Sequence[int]] = 0):
+        return jax.grad(func, argnums=argnums)
+
+    @staticmethod
+    def pad(tensor, pad_width, constant_values):
+        return jnp.pad(tensor, pad_width, mode="constant", constant_values=constant_values)
 
 for name in ["int64", "int32", "float64", "float32", "complex128", "complex64", "reshape",
              "where", "transpose", "arange", "ones", "zeros", "flip", "trace", "any",

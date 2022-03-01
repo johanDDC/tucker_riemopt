@@ -97,18 +97,14 @@ class Tucker:
         :rtype: `Tucker`
         """
         factors = []
-        core = np.zeros(back.to_numpy(back.tensor(self.rank) + back.tensor(other.rank)).astype(np.int32),
-                        dtype=self._cast_backend_dtype(self.dtype))
-        sub_core_slice1 = []
-        sub_core_slice2 = []
+        r1 = self.rank
+        r2 = other.rank
+        padded_core1 = back.pad(self.core, [(0, r2[j]) if j > 0 else (0, 0) for j in range(self.ndim)], 0)
+        padded_core2 = back.pad(other.core, [(r1[j], 0) if j > 0 else (0, 0) for j in range(other.ndim)], 0)
+        core = back.concatenate((padded_core1, padded_core2), axis=0)
         for i in range(self.ndim):
-            sub_core_slice1.append(slice(None, self.rank[i]))
-            sub_core_slice2.append(slice(self.rank[i], None))
             factors.append(back.concatenate((self.factors[i], other.factors[i]), axis=1))
 
-        core[tuple(sub_core_slice1)] = self.core
-        core[tuple(sub_core_slice2)] = other.core
-        core = back.tensor(core, self.dtype)
         return Tucker(core, factors)
 
     def __mul__(self, other):
@@ -233,35 +229,3 @@ class Tucker:
         einsum_str = core_letters + "," + factor_letters[:-1] + "->" + tensor_letters
 
         return back.einsum(einsum_str, self.core, *self.factors)
-
-    def _cast_backend_dtype(self, dtype):
-        dtype = str(dtype)
-        dtype = dtype[dtype.find('.') + 1:]
-        if dtype in ["float32", "float"]:
-            return np.float32
-        elif dtype in ["float64", "double"]:
-            return np.float64
-        elif dtype in ["float16", "half"]:
-            return np.float16
-        elif dtype in ["complex32", "complex64"]:
-            return np.complex64
-        elif dtype == "complex128":
-            return np.complex128
-        elif dtype == "complex256":
-            return np.complex256
-        elif dtype in ["uint8", "quint8"]:
-            return np.uint8
-        elif dtype in ["int8", "qint8", "quint4x2", "byte"]:
-            return np.int8
-        elif dtype in ["int16", "short"]:
-            return np.int16
-        elif dtype in ["int32", "int", "qfint32"]:
-            return np.int32
-        elif dtype in ["int64", "long"]:
-            return np.int64
-        elif dtype == "bool":
-            return np.bool8
-        else:
-            return np.float64
-
-

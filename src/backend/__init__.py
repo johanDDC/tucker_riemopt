@@ -24,15 +24,15 @@ class dynamically_dispatched_class_attribute(object):
 
 
 class BackendManager(types.ModuleType):
-    _functions = ["reshape", "moveaxis", "any", "trace", "shape", "ndim",
+    _functions = ["reshape", "any", "trace", "shape", "ndim",
                   "where", "copy", "transpose", "arange", "ones", "zeros",
                   "zeros_like", "eye", "kron", "concatenate", "max", "min", "matmul",
                   "all", "mean", "sum", "cumsum", "prod", "sign", "abs", "sqrt", "argmin",
-                  "argmax", "stack", "conj", "diag", "einsum", "log2", "dot", "tensordot",
-                  "sin", "cos", "clip", "kr", "lstsq", "eps", "finfo",
+                  "argmax", "stack", "conj", "diag", "einsum", "log2", "dot",
+                  "sin", "cos", "clip", "khatri_rao", "lstsq", "eps", "finfo",
                   "solve", "qr", "randn", "check_random_state", "sort", "eigh",
                   "context", "tensor", "norm", "to_numpy", "is_tensor",
-                  "argsort", "flip", "count_nonzero", "svd", "squeeze"
+                  "argsort", "flip", "count_nonzero", "svd", "squeeze", "grad", "pad"
                   ]
     _attributes = ["type", "int64", "int32", "float64", "float32",
                    "complex128", "complex64", "SVD_FUNS", "index", "backend_name"]

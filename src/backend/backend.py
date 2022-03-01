@@ -1,6 +1,7 @@
 import warnings
 
 import numpy as np
+import typing
 
 class Backend(object):
     _available_backends = dict()
@@ -20,10 +21,6 @@ class Backend(object):
     @classmethod
     def register_method(cls, name, func):
         setattr(cls, name, staticmethod(func))
-
-    @property
-    def type(self):
-        raise NotImplementedError
 
     @property
     def int64(self):
@@ -47,6 +44,10 @@ class Backend(object):
 
     @property
     def complex64(self):
+        raise NotImplementedError
+
+    @staticmethod
+    def type():
         raise NotImplementedError
 
     @staticmethod
@@ -303,4 +304,19 @@ class Backend(object):
 
     @staticmethod
     def cos(x):
+        raise NotImplementedError
+
+    @staticmethod
+    def grad(func: typing.Callable, argnums: typing.Union[int, typing.Sequence[int]] = 0):
+        raise NotImplementedError
+
+    @staticmethod
+    def pad(tensor, pad_width, constant_values):
+        """
+        Only constant mode is supported
+        :param tensor: tensor to pad
+        :param pad_width: tuple of axis to pad in PRIMAL order
+        :param constant_values: values to fill padded region
+        :return: padded tensor
+        """
         raise NotImplementedError
