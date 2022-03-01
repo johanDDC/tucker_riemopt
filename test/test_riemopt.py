@@ -39,7 +39,7 @@ class Test(TestCase):
         eucl_grad = full_grad(T.full())
         riem_grad = compute_gradient_projection(T, g)
 
-        assert(np.allclose(eucl_grad, riem_grad.full()))
+        assert(np.allclose(back.to_numpy(eucl_grad), back.to_numpy(riem_grad.full()), atol=1e-5))
 
     def testRiemopt(self):
         np.random.seed(123)
