@@ -2,7 +2,7 @@ from typing import List, Union, Sequence
 import numpy as np
 from flax import struct
 from string import ascii_letters
-from copy import copy
+from copy import deepcopy
 from src import backend as back
 
 ML_rank = Union[int, Sequence[int]]
@@ -145,11 +145,11 @@ class Tucker:
         """
             Elementwise multiplication of `Tucker` tensor by scalar.
         """
-        new_tensor = copy(self)
+        new_tensor = deepcopy(self)
         return Tucker(a * new_tensor.core, new_tensor.factors)
 
     def __neg__(self):
-        new_tensor = copy(self)
+        new_tensor = deepcopy(self)
         return (-1) * new_tensor
 
     def __sub__(self, other):
@@ -204,7 +204,7 @@ class Tucker:
         """
             Calculate inner product of given `Tucker` tensors.
         """
-        new_tensor = copy(self)
+        new_tensor = deepcopy(self)
         for i in range(self.ndim):
             new_tensor.factors[i] = other.factors[i].T @ new_tensor.factors[i]
 
@@ -224,7 +224,7 @@ class Tucker:
         """
         if k < 0 or k >= self.ndim:
             raise ValueError(f"k shoduld be from 0 to {self.ndim - 1}")
-        new_tensor = copy(self)
+        new_tensor = deepcopy(self)
         new_tensor.factors[k] = mat @ new_tensor.factors[k]
         return new_tensor
 
