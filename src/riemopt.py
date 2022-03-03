@@ -1,5 +1,4 @@
 from src.tucker import Tucker
-import numpy as np
 
 from src import backend as back
 
@@ -38,35 +37,3 @@ def compute_gradient_projection(func, T):
     dS, dU = dg(T, T.core, [back.zeros_like(T.factors[i]) for i in range(T.ndim)])
     dU = [dU[i] - T.factors[i] @ (T.factors[i].T @ dU[i]) for i in range(len(dU))]
     return Tucker(group_cores(dS, T.core), [back.concatenate([T.factors[i], dU[i]], axis=1) for i in range(T.ndim)])
-
-
-def optimize(f, g, X0, maxiter=10):
-    """
-    Input
-        f: function to maximize
-        X0: first approximation
-        maxiter: number of iterations to perform
-
-    Output
-        Xk: approximation after maxiter iterations
-        errs: values of functional on each step
-    """
-    X = X0
-    max_rank = np.max(X.rank)
-
-    errs = []
-    errs.append(f(X))
-    
-    for i in range(maxiter):
-        print(f'Doing iteration {i+1}/{maxiter}\t Calculating gradient...\t', end='\r')
-        G = compute_gradient_projection(X, g)
-        print(f'Doing itaration {i+1}/{maxiter}\t Calculating tau...\t\t', end='\r')
-        tau = 1
-        print(f'Doing iteration {i+1}/{maxiter}\t Calculating retraction...\t', end='\r')
-        X = X + tau * G
-        X = X.round(max_rank=max_rank) # retraction
-        
-        errs.append(f(X))
-        print(f'Done iteration {i+1}/{maxiter}!\t Error: {errs[-1]}' + ' ' * 50, end='\r')
-        
-    return X, errs

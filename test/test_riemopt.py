@@ -5,10 +5,7 @@ from src import backend as back
 from src import set_backend
 
 from src.tucker import Tucker
-from src.matrix import TuckerMatrix
-from src.riemopt import group_cores
 from src.riemopt import compute_gradient_projection
-from src.riemopt import optimize
 
 
 class Test(TestCase):
@@ -33,35 +30,5 @@ class Test(TestCase):
         riem_grad = compute_gradient_projection(f, T)
 
         assert(np.allclose(back.to_numpy(eucl_grad), back.to_numpy(riem_grad.full()), atol=1e-5))
-
-    def testRiemopt(self):
-        np.random.seed(123)
-
-        A = np.diag([1, 2, 3, 4])
-        Q, _ = np.linalg.qr(np.random.random((4, 4)))
-        A = Q @ A @ Q.T
-        A = TuckerMatrix.full2tuck(A.reshape([2] * 4), [2] * 2, [2] * 2)
-
-        def f(T):
-            return (T.flat_inner(A @ T)) / T.flat_inner(T)
-
-        def g(T1, core, factors):
-            d = T1.ndim
-            r = T1.rank
-
-            new_factors = [back.concatenate([T1.factors[i], factors[i]], axis=1) for i in range(T1.ndim)]
-            new_core = group_cores(core, T1.core)
-
-            T = Tucker(new_core, new_factors)
-            return f(T)
-
-        x = np.random.random(4)
-        X = Tucker.full2tuck(x.reshape([2] * 2))
-
-        X, _ = optimize(f, g, X, maxiter=100)
-        x = X.full().reshape(4)
-        A = A.full().reshape((4, 4))
-
-        assert(np.allclose(4 * x, A @ x))
 
 
