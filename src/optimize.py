@@ -144,15 +144,15 @@ def RGD(func: Callable, x_0: Tucker, tolerance=1e-5, max_iter=10000,
     alpha = line_search_tool.alpha_0
     riemann_grad = compute_gradient_projection(func, x_k)
 
-    write_history(func(x_k), riemann_grad)
+    write_history(func(x_k), riemann_grad.norm())
     iters = 0
     while history["grad_norm"][-1] ** 2 > tolerance * history["grad_norm"][0] ** 2:
-        alpha = line_search_tool.line_search(func, x_k, -riemann_grad, 2 * alpha)
-        x_k -= alpha * grad_k
+        alpha = line_search_tool.line_search(func, x_k, -riemann_grad, rank, 2 * alpha)
+        x_k -= alpha * riemann_grad
         x_k = x_k.round(rank)
-        grad_k = compute_gradient_projection(func, x_k)
+        riemann_grad = compute_gradient_projection(func, x_k)
 
-        write_history(func(x_k), grad_k.norm(qr_based=True))
+        write_history(func(x_k), riemann_grad.norm(qr_based=True))
 
         if np.isnan(history["func"][-1]) or np.isnan(history["grad_norm"][-1]) or \
                 np.isinf(history["func"][-1]) or np.isinf(history["grad_norm"][-1]):
