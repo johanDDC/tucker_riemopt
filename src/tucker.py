@@ -1,26 +1,63 @@
-from typing import List
+from typing import List, Union, Sequence
 import numpy as np
 from flax import struct
 from string import ascii_letters
 from copy import copy
 from src import backend as back
 
+ML_rank = Union[int, Sequence[int]]
 
 @struct.dataclass
 class Tucker:
-    core: back.type
-    factors: List[back.type]
+    core: back.type()
+    factors: List[back.type()]
 
     @classmethod
-    def full2tuck(cls, T : back.type, eps=1e-14):
+    def full2tuck(cls, T : back.type(), max_rank: ML_rank=None, eps=1e-14):
         """
-        Convert full tensor T to Tucker by applying HOSVD algorithm.
+            Convert full tensor T to Tucker by applying HOSVD algorithm.
 
-        :param T: Tensor in dense format.
-        :type T: backend.type
-        :rtype: Tucker
-        :raises [ValueError]: if `eps` < 0
-       """
+            Parameters
+            ----------
+            T: backend tensor type
+                Tensor in dense format
+
+            max_rank: int, Sequence[int] or None
+
+                - If a number, than defines the maximal `rank` of the result.
+
+                - If a list of numbers, than `max_rank` length should be d
+                  (number of dimensions) and `max_rank[i]`
+                  defines the (i)-th `rank` of the result.
+
+                  The following two versions are equivalent
+
+                  - ``max_rank = r``
+
+                  - ``max_rank = [r] * d``
+
+            eps: float
+
+                - If `max_rank` is not provided, then constructed tensor would be guarantied to be `epsilon`-close to `T`
+                  in terms of relative Frobenius error:
+
+                    `||T - A_tucker||_F / ||T||_F <= eps`
+
+                - If `max_rank` is provided, than this parameter is ignored
+        """
+        def rank_trucation(unfolding_svd, factor_id):
+            u, s, _ = unfolding_svd
+            rank = max_rank if type(max_rank) is int else max_rank[factor_id]
+            return u[:, :rank]
+
+        def eps_trunctation(unfolding_svd):
+            u, s, _ = unfolding_svd
+            eps_svd = eps / np.sqrt(d) * np.sqrt(s.T @ s)
+            cumsum = np.cumsum(list(reversed(s)))
+            cumsum = (cumsum <= back.to_numpy(eps_svd))
+            rank = len(s) - cumsum.argmin()
+            return u[:, :rank]
+
         if eps < 0:
             raise ValueError("eps should be greater or equal than 0")
         d = len(T.shape)
@@ -33,13 +70,8 @@ class Tucker:
         for i, k in enumerate(range(d)):
             unfolding = back.transpose(T, [modes[k], *(modes[:k] + modes[k+1:])])
             unfolding = back.reshape(unfolding, (T.shape[k], -1), order="F")
-            u, s, _ = back.svd(unfolding, full_matrices=False)
-            # Search for preferable truncation
-            eps_svd = eps / np.sqrt(d) * np.sqrt(s.T @ s)
-            cumsum = np.cumsum(list(reversed(s)))
-            cumsum = (cumsum <= back.to_numpy(eps_svd))
-            rank = len(s) - cumsum.argmin()
-            u = u[:, :rank]
+            unfolding_svd = back.svd(unfolding, full_matrices=False)
+            u = rank_trucation(unfolding_svd, i) if max_rank is not None else eps_trunctation(unfolding_svd)
             factors.append(u)
             UT.append(u.T)
             factor_letters += f"{ascii_letters[d + i]}{ascii_letters[i]},"
@@ -52,49 +84,39 @@ class Tucker:
     @property
     def shape(self):
         """
-        Get the tuple representing the shape of Tucker.
-
-        :return: Tucker shape
-        :rtype: tuple
+            Get the tuple representing the shape of Tucker tensor.
         """
         return tuple([factor.shape[0] for factor in self.factors])
 
     @property
     def rank(self):
         """
-        Get ranks of the Tucker in amount of ``ndim``.
-
-        :return: ranks
-        :rtype: tuple
+            Get multilinear rank of the Tucker tensor.
+            
+            Returns
+            -------
+            rank: int or Sequence[int]
+                tuple, represents multilinear rank of tensor
         """
         return self.core.shape
 
     @property
     def ndim(self):
         """
-        Get the number of dimensions of the Tucker.
-
-        :return: dimensions number
-        :rtype: int
+            Get the number of dimensions of the Tucker tensor.
         """
         return len(self.core.shape)
 
     @property
     def dtype(self):
         """
-        Represents the dtype of elements in Tucker.
-
-        :return: dtype of elements
-        :rtype: dtype
+            Get dtype of the elements in Tucker tensor.
         """
         return self.core.dtype
 
     def __add__(self, other):
         """
-        Add two `Tucker` tensors and double rank.
-
-        :return: Sum of tensors
-        :rtype: `Tucker`
+            Add two `Tucker` tensors. Result rank is doubled.
         """
         factors = []
         r1 = self.rank
@@ -109,10 +131,7 @@ class Tucker:
 
     def __mul__(self, other):
         """
-        Elementwise multiplication of two `Tucker` tensors.
-
-        :return: Elementwise multiplication of two tensors.
-        :rtype: `Tucker`
+            Elementwise multiplication of two `Tucker` tensors.
         """
         core = back.kron(self.core, other.core)
         factors = []
@@ -124,10 +143,7 @@ class Tucker:
 
     def __rmul__(self, a):
         """
-        Elementwise multiplication of `Tucker` tensor by scalar.
-
-        :return: Elementwise multiplication of tensor by scalar.
-        :rtype: `Tucker`
+            Elementwise multiplication of `Tucker` tensor by scalar.
         """
         new_tensor = copy(self)
         return Tucker(a * new_tensor.core, new_tensor.factors)
@@ -140,14 +156,36 @@ class Tucker:
         other = -other
         return self + other
 
-    def round(self, eps=1e-14):
+    def round(self, max_rank: ML_rank = None, eps=1e-14):
         """
-        HOSVD rounding procedure, returns a `Tucker` with smaller `ranks`.
+        HOSVD rounding procedure, returns a Tucker with smaller ranks.
 
-        :return: `Tucker` with reduced ranks.
-        :rtype: `Tucker`
-        :raises [ValueError]: if `eps` < 0
+        Parameters
+        ----------
+            max_rank: int, Sequence[int] or None
+
+                - If a number, than defines the maximal `rank` of the result.
+
+                - If a list of numbers, than `max_rank` length should be d
+                  (number of dimensions) and `max_rank[i]`
+                  defines the (i)-th `rank` of the result.
+
+                  The following two versions are equivalent
+
+                  - ``max_rank = r``
+
+                  - ``max_rank = [r] * d``
+
+            eps: float
+
+                - If `max_rank` is not provided, then result would be guarantied to be `epsilon`-close to unrounded tensor
+                  in terms of relative Frobenius error:
+
+                    `||A - A_round||_F / ||A||_F <= eps`
+
+                - If `max_rank` is provided, than this parameter is ignored
         """
+
         if eps < 0:
             raise ValueError("eps should be greater or equal than 0")
         factors = [None] * self.ndim
@@ -156,7 +194,7 @@ class Tucker:
             factors[i], intermediate_factors[i] = back.qr(self.factors[i])
 
         intermediate_tensor = Tucker(self.core, intermediate_factors)
-        intermediate_tensor = Tucker.full2tuck(intermediate_tensor.full(), eps)
+        intermediate_tensor = Tucker.full2tuck(intermediate_tensor.full(), max_rank, eps)
         core = intermediate_tensor.core
         for i in range(self.ndim):
             factors[i] = factors[i] @ intermediate_tensor.factors[i]
@@ -164,10 +202,7 @@ class Tucker:
 
     def flat_inner(self, other):
         """
-        Calculate inner product of given `Tucker` tensors.
-
-        :rerurn: the result of inner product
-        :rtype: float
+            Calculate inner product of given `Tucker` tensors.
         """
         new_tensor = copy(self)
         for i in range(self.ndim):
@@ -176,14 +211,16 @@ class Tucker:
         inds = ascii_letters[:self.ndim]
         return back.squeeze(back.einsum(f"{inds},{inds}->", new_tensor.full(), other.core))
 
-    def k_mode_product(self, k, mat):
+    def k_mode_product(self, k:int, mat: back.type()):
         """
         K-mode tensor-matrix product.
 
-        :param k: mode id from 0 to ndim - 1
-        :return: the result of k-mode tensor-matrix product
-        :rtype: `Tucker`
-        :raises [ValueError]: if `k` not from valid range
+        Parameters
+        ----------
+        k: int
+            mode id from 0 to ndim - 1
+        mat: matrix of backend tensor type
+            matrix with which Tucker tensor is contracted by k mode
         """
         if k < 0 or k >= self.ndim:
             raise ValueError(f"k shoduld be from 0 to {self.ndim - 1}")
@@ -191,15 +228,20 @@ class Tucker:
         new_tensor.factors[k] = mat @ new_tensor.factors[k]
         return new_tensor
 
-    def norm(self, qr_based=False):
+    def norm(self, qr_based:bool =False):
         """
         Frobenius norm of `Tucker`.
 
-        :param qr_based: whether to use stable QR-based implementation of norm, which is not differentiable,
-        or unstable but differentiable implementation based on inner product. By default differentiable implementation
-        is used
-        :return: non-negative number which is
-        the Frobenius norm of `Tucker` :rtype: `float`
+        Parameters
+        ----------
+        qr_based: bool
+            whether to use stable QR-based implementation of norm, which is not differentiable,
+            or unstable but differentiable implementation based on inner product. By default differentiable implementation
+            is used
+        Returns
+        -------
+        F-norm: float
+            non-negative number which is the Frobenius norm of `Tucker` tensor
         """
         if qr_based:
             core_factors = []
@@ -214,10 +256,7 @@ class Tucker:
 
     def full(self):
         """
-        Dense representation of `Tucker`.
-
-        :return: Dense tensor
-        :rtype: `backend.type`
+            Dense representation of `Tucker`.
         """
         core_letters = ascii_letters[:self.ndim]
         factor_letters = ""
@@ -229,3 +268,5 @@ class Tucker:
         einsum_str = core_letters + "," + factor_letters[:-1] + "->" + tensor_letters
 
         return back.einsum(einsum_str, self.core, *self.factors)
+
+TangentVector = Tucker
