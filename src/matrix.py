@@ -11,7 +11,7 @@ class TuckerMatrix(Tucker):
     m: back.type
 
     @classmethod
-    def full2tuck(cls, T : back.type, n=None, m=None, max_rank=10, eps=1e-14):
+    def full2tuck(cls, T : back.type, n=None, m=None, max_rank=None, eps=1e-14):
         T = Tucker.full2tuck(T, max_rank=max_rank, eps=eps)
         return cls(T.core, T.factors, back.tensor(n), back.tensor(m))
 
@@ -57,7 +57,7 @@ class TuckerMatrix(Tucker):
             einsum_str += l3[i] + l4[i] + ','
         einsum_str = einsum_str[:-1] + '->' + l1 + l5
 
-        new_core = back.einsum(einsum_str, self.core, *self.factors[-d2:], other.core, *other.factors[:d2], optimize='optimal')
+        new_core = back.einsum(einsum_str, self.core, *self.factors[-d2:], other.core, *other.factors[:d2])
         new_factors = self.factors[:d1]
         if d4 != 0:
             new_factors += other.factors[-d4:]
