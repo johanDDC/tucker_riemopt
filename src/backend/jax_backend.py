@@ -72,7 +72,7 @@ class JaxBackend(Backend, backend_name="jax"):
             matrices = [m if i else m*self.reshape(weights, (1, -1)) for i, m in enumerate(matrices)]
 
         m = mask.reshape((-1, 1)) if mask is not None else 1
-        return jnp.einsum(operation, *matrices).reshape((-1, n_columns))*m
+        return jnp.einsum(operation, *matrices, optimize="optimal").reshape((-1, n_columns))*m
 
     @staticmethod
     def sort(tensor, axis, descending = False):
