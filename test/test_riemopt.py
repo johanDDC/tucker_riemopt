@@ -11,7 +11,6 @@ from src.riemopt import compute_gradient_projection
 class Test(TestCase):
 
     def testGradProjection(self):
-        set_backend("pytorch")
         np.random.seed(229)
 
         def f_full(A):
