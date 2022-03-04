@@ -39,7 +39,7 @@ class JaxBackend(Backend, backend_name="jax"):
 
     @staticmethod
     def copy(tensor):
-        return copy.copy(tensor)
+        return copy.deepcopy(tensor)
 
     @staticmethod
     def shape(tensor):
