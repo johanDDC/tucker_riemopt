@@ -149,8 +149,7 @@ class Tucker:
         return Tucker(a * new_tensor.core, new_tensor.factors)
 
     def __neg__(self):
-        new_tensor = deepcopy(self)
-        return (-1) * new_tensor
+        return (-1) * self
 
     def __sub__(self, other):
         other = -other
@@ -268,5 +267,10 @@ class Tucker:
         einsum_str = core_letters + "," + factor_letters[:-1] + "->" + tensor_letters
 
         return back.einsum(einsum_str, self.core, *self.factors)
+
+    def __deepcopy__(self, memodict={}):
+        new_core = back.copy(self.core)
+        new_factors = [back.copy(factor) for factor in self.factors]
+        return self.__class__(new_core, new_factors)
 
 TangentVector = Tucker

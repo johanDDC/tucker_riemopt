@@ -28,7 +28,7 @@ class PyTorchBackend(Backend, backend_name="pytorch"):
                 "requires_grad": tensor.requires_grad}
 
     @staticmethod
-    def tensor(data, dtype=torch.float32, device="cpu", requires_grad=False):
+    def tensor(data, dtype=torch.float64, device="cpu", requires_grad=False):
         if isinstance(data, np.ndarray):
             data = data.copy()
         return torch.tensor(data, dtype=dtype, device=device, requires_grad=requires_grad)
@@ -280,8 +280,8 @@ class PyTorchBackend(Backend, backend_name="pytorch"):
         from torch.nn.functional import pad
         flat_pad_width = []
         for pair in pad_width:
-            flat_pad_width.append(pair[0])
             flat_pad_width.append(pair[1])
+            flat_pad_width.append(pair[0])
         flat_pad_width = flat_pad_width[::-1]
         return pad(tensor, flat_pad_width, "constant", 0)
 
