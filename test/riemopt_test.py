@@ -1,14 +1,12 @@
 from unittest import TestCase
-
 import numpy as np
-from src import backend as back
-from src import set_backend
 
-from src.tucker import Tucker
-from src.riemopt import compute_gradient_projection
+from tucker_riemopt import backend as back
+from tucker_riemopt import Tucker
+from tucker_riemopt.riemopt import compute_gradient_projection
 
 
-class Test(TestCase):
+class RiemoptTest(TestCase):
 
     def testGradProjection(self):
         np.random.seed(229)

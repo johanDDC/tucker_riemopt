@@ -3,7 +3,8 @@ import numpy as np
 from flax import struct
 from string import ascii_letters
 from copy import deepcopy
-from src import backend as back
+
+from tucker_riemopt import backend as back
 
 ML_rank = Union[int, Sequence[int]]
 

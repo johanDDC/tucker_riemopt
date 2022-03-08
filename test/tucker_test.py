@@ -1,7 +1,8 @@
 from unittest import TestCase
-from src.tucker import Tucker
 import numpy as np
-from src import backend as back
+
+from tucker_riemopt import Tucker
+from tucker_riemopt import backend as back
 
 def createTestTensor(n = 4):
     """

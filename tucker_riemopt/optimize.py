@@ -3,8 +3,8 @@ from typing import Callable
 from collections import defaultdict
 from copy import copy
 
-from src.riemopt import compute_gradient_projection, vector_transport
-from src.tucker import Tucker, TangentVector, ML_rank
+from tucker_riemopt.riemopt import compute_gradient_projection, vector_transport
+from tucker_riemopt.tucker import Tucker, TangentVector, ML_rank
 
 class OptimizationConfig:
     """

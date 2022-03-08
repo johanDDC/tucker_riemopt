@@ -2,8 +2,8 @@ from flax import struct
 from string import ascii_letters
 from copy import copy
 
-from src import backend as back
-from src.tucker import Tucker
+from tucker_riemopt import backend as back
+from tucker_riemopt import Tucker
 
 @struct.dataclass
 class TuckerMatrix(Tucker):
