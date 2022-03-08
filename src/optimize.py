@@ -11,12 +11,15 @@ class LineSearchTool(object):
     """
     Line search tool for adaptively tuning the step size of the algorithm.
 
-    method : String containing 'Armijo' or 'Constant'
+    method : String containing 'Armijo', 'Constant' or 'Custom'
         Method of tuning step-size.
         Must be be one of the following strings:
             - 'Armijo" -- adaptive Armijo rule;
             - 'Constant' -- constant step size.
-            - 'Best' -- optimal step size inferred via analytical minimization.
+            - 'Custom' -- You may provide your own line search method, which for instance
+                            inferred via analytical minimization. In this case you should provide
+                            function, which will calculate step size based on all known reasonable
+                            arguments.
     kwargs :
         Additional parameters of line_search method:
 
@@ -25,16 +28,25 @@ class LineSearchTool(object):
             alpha_0 : Starting point for the backtracking procedure.
         If method == 'Constant':
             alpha_0 : The step size which is returned on every step.
+        If method == 'Custom':
+            alpha_0 : if param `prev_alpha` for first iteration (see next param description). By default alpha_0 = 1
+            f : function, which gains following arguments (in order)
+                x_k : last calculated solution
+                g_k : riemann gradient
+                d_k : search direction (it might be riemann anti-gradient, or conjugate direction)
+                rank : solution is being searched from riemann manifold of this rank
+                prev_alpha : previous step size (alpha_0 on first iteration)
+            and calculates next step size.
+            adjust : if True, calculated step size will be initial guess for Armijo backtracking. Default is False
     """
     def __init__(self, method='Armijo', **kwargs):
         self._method = method
+        self.alpha_0 = kwargs.get('alpha_0', 1.0)
         if self._method == 'Armijo':
             self.c1 = kwargs.get('c1', 1e-4)
-            self.alpha_0 = kwargs.get('alpha_0', 1.0)
-        elif self._method == 'Constant':
-            self.c = kwargs.get('c', 1.0)
-        elif self._method == 'Best':
-            pass
+        elif self._method == 'Custom':
+            self.custom_func = kwargs.get('f', lambda *args: self.alpha_0)
+            self.adjust = kwargs.get('adjust', False)
         else:
             raise ValueError('Unknown method {}'.format(method))
 
@@ -54,7 +66,7 @@ class LineSearchTool(object):
             armijo_threshold /= 2
         return alpha
 
-    def line_search(self, func: Callable[[TangentVector], Tucker], x_k: Tucker, d_k: TangentVector, rank: ML_rank, previous_alpha=None):
+    def line_search(self, func: Callable[[TangentVector], Tucker], x_k: Tucker, g_k: Tucker, d_k: TangentVector, rank: ML_rank, previous_alpha=None):
         """
         Finds the step size alpha for a given starting point x_k
         and for a given search direction d_k that satisfies necessary
@@ -64,9 +76,11 @@ class LineSearchTool(object):
         ----------
         func : Callable[[TangentVector], Tucker]
             Cost function for minimizing.
-        x_k : np.array
+        x_k : Tucker
             Starting point
-        d_k : np.array
+        g_k : Tucker
+            Riemann gradient
+        d_k : Tucker
             Search direction
         previous_alpha : float or None
             Starting point to use instead of self.alpha_0 to keep the progress from
@@ -80,7 +94,11 @@ class LineSearchTool(object):
         if self._method == "Armijo":
             alpha = self.__armijo(func, x_k, d_k, rank, previous_alpha)
         if self._method == "Constant":
-            alpha = self.c
+            alpha = self.alpha_0
+        if self._method == "Custom":
+            alpha = self.custom_func(x_k, g_k, d_k, rank, previous_alpha)
+            if self.adjust:
+                alpha = self.__armijo(func, x_k, d_k, rank, alpha)
 
         return alpha
 
