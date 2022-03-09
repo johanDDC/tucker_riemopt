@@ -68,7 +68,7 @@ class BackendManager(types.ModuleType):
         """Returns the currently used backend instance
         Returns
         -------
-        backend : tensorly.backend.Backend
+        backend : tucker_riemopt.backend.Backend
             Backend instance currently in use
         """
         return cls._THREAD_LOCAL_DATA.__dict__.get("backend", cls._backend)
@@ -172,7 +172,7 @@ class BackendManager(types.ModuleType):
             msg = f"Unknown backend name {backend_name!r}, known backends are {cls.available_backend_names}"
             raise ValueError(msg)
         if backend_name not in Backend._available_backends:
-            importlib.import_module(f"src.backend.{backend_name}_backend") # src!
+            importlib.import_module(f"tucker_riemopt.backend.{backend_name}_backend") # tucker_riemopt!
         if backend_name in Backend._available_backends:
             backend = Backend._available_backends[backend_name]()
             cls._loaded_backends[backend_name] = backend

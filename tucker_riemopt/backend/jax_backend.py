@@ -5,7 +5,7 @@ try:
     import jax.numpy as jnp
 except ImportError as error:
     message = ("Impossible to import Jax.\n"
-               "To use Tucker riemopt with the Jax backend, "
+               "To use tucker_riemopt with the Jax backend, "
                "you must first install Jax!")
     raise ImportError(message) from error
 

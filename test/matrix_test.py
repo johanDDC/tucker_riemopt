@@ -1,13 +1,14 @@
 from unittest import TestCase
-
 import numpy as np
-from src.tucker import Tucker
-from src.matrix import TuckerMatrix
+
+from tucker_riemopt import Tucker
+from tucker_riemopt import TuckerMatrix
+from tucker_riemopt import backend as back
 
 
-class TestTuckerMatrix(TestCase):
+class TuckerMatrixTest(TestCase):
     def testShape(self):
-        A = np.random.random((4, 4, 4))
+        A = back.randn((4, 4, 4))
 
         M1 = TuckerMatrix.full2tuck(A, [4, 4], [4])
         M2 = TuckerMatrix.full2tuck(A, [4], [4, 4])
@@ -16,8 +17,8 @@ class TestTuckerMatrix(TestCase):
         assert(res.shape == (4, 4, 4, 4))
 
     def testMatMul(self):
-        A1 = np.random.random((3, 3))
-        A2 = np.random.random((3, 3))
+        A1 = back.randn((3, 3))
+        A2 = back.randn((3, 3))
 
         M1 = TuckerMatrix.full2tuck(A1, [3], [3])
         M2 = TuckerMatrix.full2tuck(A2, [3], [3])
@@ -26,8 +27,8 @@ class TestTuckerMatrix(TestCase):
         assert(np.allclose(res.full(), A1 @ A2))
 
     def testMatVec(self):
-        v = np.random.random(4)
-        A = np.random.random((4, 4))
+        v = back.randn((4,))
+        A = back.randn((4, 4))
 
         V = Tucker.full2tuck(v.reshape([2] * 2))
         M = TuckerMatrix.full2tuck(A.reshape([2] * 4), [2] * 2, [2] * 2)
@@ -36,8 +37,8 @@ class TestTuckerMatrix(TestCase):
         assert(np.allclose(res.full().flatten(), A @ v))
 
     def testAddMul(self):
-        A1 = np.random.random((3, 3))
-        A2 = np.random.random((3, 3))
+        A1 = back.randn((3, 3))
+        A2 = back.randn((3, 3))
 
         M1 = TuckerMatrix.full2tuck(A1, [3], [3])
         M2 = TuckerMatrix.full2tuck(A2, [3], [3])

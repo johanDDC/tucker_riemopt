@@ -1,6 +1,6 @@
-from src.tucker import Tucker
+from tucker_riemopt import Tucker
 
-from src import backend as back
+from tucker_riemopt import backend as back
 
 def group_cores(core1, core2):
     d = len(core1.shape)

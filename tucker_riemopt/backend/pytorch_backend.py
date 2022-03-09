@@ -5,7 +5,7 @@ try:
     import torch
 except ImportError as error:
     message = ("Impossible to import PyTorch.\n"
-               "To use Tucker riemopt with the PyTorch backend, "
+               "To use tucker_riemopt with the PyTorch backend, "
                "you must first install PyTorch!")
     raise ImportError(message) from error
 
@@ -286,21 +286,18 @@ class PyTorchBackend(Backend, backend_name="pytorch"):
         return pad(tensor, flat_pad_width, "constant", 0)
 
 
-# Register the other functions
 for name in ["float64", "float32", "int64", "int32", "complex128", "complex64",
              "is_tensor", "ones", "zeros", "any", "trace", "count_nonzero",
              "zeros_like", "eye", "min", "prod", "abs", "matmul",
              "sqrt", "sign", "where", "conj", "finfo", "einsum", "log2", "sin", "cos", "squeeze"]:
     PyTorchBackend.register_method(name, getattr(torch, name))
 
-# PyTorch 1.8.0 has a much better NumPy interface but somoe haven"t updated yet
 if LooseVersion(torch.__version__) < LooseVersion("1.8.0"):
     warnings.warn(f"You are using an old version of PyTorch ({torch.__version__}). "
                   "We recommend upgrading to a newest one, e.g. >1.8.0.")
     PyTorchBackend.register_method("qr", getattr(torch, "qr"))
 
 else:
-    # New PyTorch NumPy interface
     for name in ["kron"]:
         PyTorchBackend.register_method(name, getattr(torch, name))
 

@@ -1,12 +1,12 @@
-import jax.test_util as jtu
-from src import set_backend
+from unittest import TestCase
+from tucker_riemopt import set_backend
 
-import tucker
+import tucker_test
 
-class TuckerTensorTest(jtu.JaxTestCase):
+class BackendTest(TestCase):
     def testJaxBackend(self):
         set_backend("jax")
-        instance = tucker.TuckerTensorTest()
+        instance = tucker_test.TuckerTensorTest()
         instance.testFull2Tuck()
         instance.testAdd()
         instance.testMul()
@@ -16,7 +16,7 @@ class TuckerTensorTest(jtu.JaxTestCase):
 
     def testPytorchBackend(self):
         set_backend("pytorch")
-        instance = tucker.TuckerTensorTest()
+        instance = tucker_test.TuckerTensorTest()
         instance.testFull2Tuck()
         instance.testAdd()
         instance.testMul()
