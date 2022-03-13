@@ -11,8 +11,6 @@ from tucker_riemopt import backend as back
 class SparseTensor:
     """
         Contains sparse tensor in coo format. It can be constructed manually or converted from dense format.
-        Class doesn't provide method, which convert tensor back to dense format, assuming, that such tensors
-        should not be constructed in memory.
     """
 
     def __init__(self, shape : Sequence[int], inds : Sequence[Sequence[int]], vals : Sequence[back.float64]):
@@ -126,6 +124,15 @@ class SparseTensor:
             result = contract_by_mode(result, mode, contraction_dict[mode])
         return result
 
+    def to_dense(self):
+        """
+            Converts sparse tensor to dense format.
+            Be sure, that tensor can be constructed in memory in dense format.
+        """
+        T = np.zeros(self.shape)
+        T[tuple(self.inds[i] for i in range(self.ndim))] = self.vals
+        return back.tensor(T)
+
 
 ML_rank = Union[int, Sequence[int]]
 
@@ -205,18 +212,12 @@ class Tucker:
 
     @classmethod
     def sparse2tuck(cls, sparse_tensor : SparseTensor, max_rank: ML_rank=None, eps=1e-14):
-        return SparseTucker.sparse2tuck(sparse_tensor, max_rank, eps)
-
-    @classmethod
-    def sparse2tuck(cls, shape : Sequence[int], inds : Sequence[Sequence[int]], vals : Sequence[back.float64],
-                    max_rank: ML_rank = None, eps=1e-14):
         """
-            Gains tuple of indices and corresponding values of tensor and constructs Tucker decomposition.
-            Constructed Tucker assumes, that there are `vals` on corresponding `inds` positions, and zeros on other.
+            Gains sparse tensor and constructs its Sparse Tucker decomposition.
 
             Parameters
             ----------
-            T: backend tensor type
+            sparse_tensor: SparseTensor
                 Tensor in dense format
 
             max_rank: int, Sequence[int] or None
@@ -233,14 +234,53 @@ class Tucker:
 
                   - ``max_rank = [r] * d``
 
-            eps: float
+            eps: float or None
 
-                - If `max_rank` is not provided, then constructed tensor would be guarantied to be `epsilon`-close to `T`
-                  in terms of relative Frobenius error:
+                - If float, than HOOI algorithm will be launched, until absolute error of Tucker representation of
+                sparse tensor not less than provided eps
 
-                    `||T - A_tucker||_F / ||T||_F <= eps`
+                - If None, no additional algorithms will be launched (note, that error in that case can be large)
+        """
+        return SparseTucker.sparse2tuck(sparse_tensor, max_rank, eps)
 
-                - If `max_rank` is provided, than this parameter is ignored
+    @classmethod
+    def sparse2tuck(cls, shape : Sequence[int], inds : Sequence[Sequence[int]], vals : Sequence[back.float64],
+                    max_rank: ML_rank = None, eps=1e-14):
+        """
+            Gains tuple of indices and corresponding values of tensor and constructs Tucker decomposition.
+            Constructed Tucker assumes, that there are `vals` on corresponding `inds` positions, and zeros on other.
+
+            Parameters
+            ----------
+            shape: tuple
+                tensor shape
+
+            inds: tuple of integer arrays of size nnz
+                positions of nonzero elements
+
+            vals: list of size nnz
+                corresponding values
+
+            max_rank: int, Sequence[int] or None
+
+                - If a number, than defines the maximal `rank` of the result.
+
+                - If a list of numbers, than `max_rank` length should be d
+                  (number of dimensions) and `max_rank[i]`
+                  defines the (i)-th `rank` of the result.
+
+                  The following two versions are equivalent
+
+                  - ``max_rank = r``
+
+                  - ``max_rank = [r] * d``
+
+            eps: float or None
+
+                - If float, than HOOI algorithm will be launched, until absolute error of Tucker representation of
+                sparse tensor not less than provided eps
+
+                - If None, no additional algorithms will be launched (note, that error in that case can be large)
         """
         return SparseTucker.sparse2tuck(SparseTensor(shape, inds, vals), max_rank, eps)
 
@@ -448,16 +488,72 @@ class SparseTucker(Tucker):
 
     sparse_tensor : SparseTensor
 
+    @staticmethod
+    def __HOOI(sparse_tensor, sparse_tucker, contraction_dict, eps):
+        # contraction dict should contain transposed factors
+        err = back.norm(sparse_tensor.vals) - sparse_tucker.norm(qr_based=True)
+        while back.abs(err) > eps:
+            for k in range(sparse_tensor.ndim):
+                contraction_dict.pop(k)
+                W = sparse_tensor.contract(contraction_dict)
+                W_unfolding = W.unfolding(k)
+                W_unfolding = LinearOperator(W_unfolding.shape, matvec=lambda x: W_unfolding @ x,
+                                           rmatvec=lambda x: W_unfolding.T @ x)
+                factor = svds(W_unfolding, W_unfolding.shape[1], return_singular_vectors="u")[0]
+
+                contraction_dict[k] = factor.T
+                sparse_tucker.factors[k] = factor
+
+            tucker_core = sparse_tensor.contract(contraction_dict)
+            tucker_core = tucker_core.to_dense()
+            sparse_tucker = SparseTucker(tucker_core, sparse_tucker.factors, sparse_tensor)
+            err = back.norm(sparse_tensor.vals) - sparse_tucker.norm(qr_based=True)
+
+        return sparse_tucker
+
+
+
     @classmethod
     def sparse2tuck(cls, sparse_tensor : SparseTensor, max_rank: ML_rank=None, eps=1e-14):
+        """
+            Gains sparse tensor and constructs its Sparse Tucker decomposition.
+
+            Parameters
+            ----------
+            sparse_tensor: SparseTensor
+                Tensor in dense format
+
+            max_rank: int, Sequence[int] or None
+
+                - If a number, than defines the maximal `rank` of the result.
+
+                - If a list of numbers, than `max_rank` length should be d
+                  (number of dimensions) and `max_rank[i]`
+                  defines the (i)-th `rank` of the result.
+
+                  The following two versions are equivalent
+
+                  - ``max_rank = r``
+
+                  - ``max_rank = [r] * d``
+
+            eps: float or None
+
+                - If float, than HOOI algorithm will be launched, until absolute error of Tucker representation of
+                sparse tensor not less than provided eps
+
+                - If None, no additional algorithms will be launched (note, that error in that case can be large)
+        """
         factors = []
-        constraction_dict = dict()
+        contraction_dict = dict()
         for i, k in enumerate(range(sparse_tensor.ndim)):
             unfolding = sparse_tensor.unfolding(k)
             unfolding = LinearOperator(unfolding.shape, matvec=lambda x: unfolding @ x,
                                         rmatvec=lambda x: unfolding.T @ x)
             factors.append(svds(unfolding, max_rank[k], return_singular_vectors="u")[0])
-            constraction_dict[i] = factors[-1].T
+            contraction_dict[i] = factors[-1].T
 
-        core = sparse_tensor.contract(constraction_dict)
-        return cls(core=core, factors=factors, sparse_tensor=sparse_tensor)
+        core = sparse_tensor.contract(contraction_dict)
+        sparse_tucker = cls(core=core, factors=factors, sparse_tensor=sparse_tensor)
+        sparse_tucker = cls.__HOOI(sparse_tensor, sparse_tucker, contraction_dict, eps)
+        return sparse_tucker
