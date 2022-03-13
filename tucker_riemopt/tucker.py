@@ -9,6 +9,12 @@ from scipy.sparse.linalg import LinearOperator, svds
 from tucker_riemopt import backend as back
 
 class SparseTensor:
+    """
+        Contains sparse tensor in coo format. It can be constructed manually or converted from dense format.
+        Class doesn't provide method, which convert tensor back to dense format, assuming, that such tensors
+        should not be constructed in memory.
+    """
+
     def __init__(self, shape : Sequence[int], inds : Sequence[Sequence[int]], vals : Sequence[back.float64]):
         """
         Parameters
