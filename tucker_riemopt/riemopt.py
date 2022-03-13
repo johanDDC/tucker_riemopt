@@ -1,5 +1,4 @@
 from tucker_riemopt import Tucker
-
 from tucker_riemopt import backend as back
 
 def group_cores(core1, core2):
