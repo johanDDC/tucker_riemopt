@@ -440,17 +440,24 @@ TangentVector = Tucker
 
 @struct.dataclass
 class SparseTucker(Tucker):
+    """
+        Represents sparse tensor in Tucker format.
+        Sparse Tucker is such tensor decomposition that minimizes error on known values and
+        treats others as zeros.
+    """
+
     sparse_tensor : SparseTensor
 
     @classmethod
     def sparse2tuck(cls, sparse_tensor : SparseTensor, max_rank: ML_rank=None, eps=1e-14):
-        d = len(sparse_tensor.shape)
-        modes = list(np.arange(0, d))
         factors = []
-        UT = []
-        for k in range(d):
+        constraction_dict = dict()
+        for i, k in enumerate(range(sparse_tensor.ndim)):
             unfolding = sparse_tensor.unfolding(k)
             unfolding = LinearOperator(unfolding.shape, matvec=lambda x: unfolding @ x,
                                         rmatvec=lambda x: unfolding.T @ x)
             factors.append(svds(unfolding, max_rank[k], return_singular_vectors="u")[0])
-            UT.append(factors[-1].T)
+            constraction_dict[i] = factors[-1].T
+
+        core = sparse_tensor.contract(constraction_dict)
+        return cls(core=core, factors=factors, sparse_tensor=sparse_tensor)
