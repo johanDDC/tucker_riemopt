@@ -1,10 +1,125 @@
-from typing import List, Union, Sequence
+from typing import List, Union, Sequence, Dict
 import numpy as np
 from flax import struct
 from string import ascii_letters
 from copy import deepcopy
+from scipy.sparse import coo_matrix, csr_matrix
+from scipy.sparse.linalg import LinearOperator, svds
 
 from tucker_riemopt import backend as back
+
+class SparseTensor:
+    def __init__(self, shape : Sequence[int], inds : Sequence[Sequence[int]], vals : Sequence[back.float64]):
+        """
+        Parameters
+        ----------
+            shape: tuple
+                tensor shape
+            inds: tuple of integer arrays of size nnz
+                positions of nonzero elements
+            vals: list of size nnz
+                corresponding values
+        """
+
+        assert len(inds) == len(shape) >= 1
+        assert len(vals) == len(inds[0])
+        self.shape = shape
+        self.inds = inds
+        self.vals = vals
+
+    @classmethod
+    def dense2sparse(T : back.type()):
+        inds = [np.arange(mode, dtype=int) for mode in T.shape]
+        grid_inds = tuple(I.flatten(order="F") for I in np.meshgrid(*inds, indexing="ij"))
+        return SparseTensor(T.shape, grid_inds, T.reshape(-1, order="F"))
+
+    @property
+    def ndim(self):
+        return len(self.shape)
+
+    def unfolding(self, k):
+        def multiindex(p):
+            """
+                Calculates \overline{i_1 * ... * i_d} except i_k
+            """
+            joined_ind = 0
+            for i in range(0, self.ndim):
+                if i != p:
+                    shape_prod = 1
+                    if i != 0:
+                        shape_prod = back.prod(back.tensor(self.shape)[:i])
+                    if i > p:
+                        shape_prod //= self.shape[p]
+                    joined_ind += self.inds[i] * shape_prod
+            return joined_ind
+
+        if k < 0 and k > self.ndim:
+            raise ValueError(f"param k should be between 0 and {self.ndim}")
+        row = self.inds[k]
+        col = multiindex(k)
+        unfolding = coo_matrix((self.vals, (row, col)),
+                                    shape=(self.shape[k], back.prod(back.tensor(self.shape)) // self.shape[k]))
+        return unfolding.tocsr()
+
+    @staticmethod
+    def __unfolding_to_tensor(unfolding : csr_matrix, k : int, shape : Sequence[int]):
+        """
+            Converts k-unfolding matrix back to sparse tensor.
+        """
+        def detach_multiindex(p, multiindex):
+            """
+                Performs detaching of multiindex back to tuple of indices. Excepts p-mode.
+            """
+            inds = []
+            dynamic = np.zeros_like(multiindex[1]) # use dynamic programming to prevent d**2 complexity
+            shape_prod = back.prod(back.tensor(shape)) // shape[p]
+            # shape_prod //= shape[-2] if p == len(shape) - 1 else shape[-1]
+            for i in range(len(shape) - 1, -1, -1):
+                if i != p:
+                    shape_prod //= shape[i]
+                    inds.append((multiindex[1] - dynamic) // shape_prod)
+                    dynamic += inds[-1] * shape_prod
+                else:
+                    inds.append(multiindex[0])
+            return inds[::-1]
+
+        unfolding = unfolding.tocoo()
+        vals = unfolding.data
+        inds = detach_multiindex(k, (unfolding.row, unfolding.col))
+        return SparseTensor(shape, inds, vals)
+
+
+    def contract(self, contraction_dict : Dict[int, back.type()]):
+        """
+            Performs tensor contraction.
+
+            Parameters
+            ----------
+            contraction_dict: dict[int, back.tensor]
+                dictionary of pairs (i, M), where i is mode index, and M is matrix, we want to contract tensor with by i mode
+
+            Returns
+            -------
+            SparseTensor : result of contranction
+        """
+        def contract_by_mode(T : SparseTensor, k: int, M : back.type()):
+            """
+                Performs tensor contraction by specified mode using the following property:
+                {<A, M>_k}_(k) = M @ A_(k)
+                where <., .>_k is k-mode contraction, A_(k) is k-mode unfolding
+            """
+            M = csr_matrix(M)
+            unfolding = T.unfolding(k)
+            new_unfolded_tensor = M @ unfolding
+            new_shape = list(T.shape)
+            new_shape[k] = M.shape[0]
+            return SparseTensor.__unfolding_to_tensor(new_unfolded_tensor, k, new_shape)
+
+        result = self
+        for mode in contraction_dict.keys():
+            result = contract_by_mode(result, mode, contraction_dict[mode])
+        return result
+
 
 ML_rank = Union[int, Sequence[int]]
 
@@ -81,6 +196,47 @@ class Tucker:
         einsum_str = tensor_letters + "," + factor_letters[:-1] + "->" + core_letters
         core = back.einsum(einsum_str, T, *UT)
         return cls(core, factors)
+
+    @classmethod
+    def sparse2tuck(cls, sparse_tensor : SparseTensor, max_rank: ML_rank=None, eps=1e-14):
+        return SparseTucker.sparse2tuck(sparse_tensor, max_rank, eps)
+
+    @classmethod
+    def sparse2tuck(cls, shape : Sequence[int], inds : Sequence[Sequence[int]], vals : Sequence[back.float64],
+                    max_rank: ML_rank = None, eps=1e-14):
+        """
+            Gains tuple of indices and corresponding values of tensor and constructs Tucker decomposition.
+            Constructed Tucker assumes, that there are `vals` on corresponding `inds` positions, and zeros on other.
+
+            Parameters
+            ----------
+            T: backend tensor type
+                Tensor in dense format
+
+            max_rank: int, Sequence[int] or None
+
+                - If a number, than defines the maximal `rank` of the result.
+
+                - If a list of numbers, than `max_rank` length should be d
+                  (number of dimensions) and `max_rank[i]`
+                  defines the (i)-th `rank` of the result.
+
+                  The following two versions are equivalent
+
+                  - ``max_rank = r``
+
+                  - ``max_rank = [r] * d``
+
+            eps: float
+
+                - If `max_rank` is not provided, then constructed tensor would be guarantied to be `epsilon`-close to `T`
+                  in terms of relative Frobenius error:
+
+                    `||T - A_tucker||_F / ||T||_F <= eps`
+
+                - If `max_rank` is provided, than this parameter is ignored
+        """
+        return SparseTucker.sparse2tuck(SparseTensor(shape, inds, vals), max_rank, eps)
 
     @property
     def shape(self):
@@ -275,3 +431,20 @@ class Tucker:
         return self.__class__(new_core, new_factors)
 
 TangentVector = Tucker
+
+@struct.dataclass
+class SparseTucker(Tucker):
+    sparse_tensor : SparseTensor
+
+    @classmethod
+    def sparse2tuck(cls, sparse_tensor : SparseTensor, max_rank: ML_rank=None, eps=1e-14):
+        d = len(sparse_tensor.shape)
+        modes = list(np.arange(0, d))
+        factors = []
+        UT = []
+        for k in range(d):
+            unfolding = sparse_tensor.unfolding(k)
+            unfolding = LinearOperator(unfolding.shape, matvec=lambda x: unfolding @ x,
+                                        rmatvec=lambda x: unfolding.T @ x)
+            factors.append(svds(unfolding, max_rank[k], return_singular_vectors="u")[0])
+            UT.append(factors[-1].T)
