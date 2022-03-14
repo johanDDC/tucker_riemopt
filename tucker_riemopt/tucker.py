@@ -32,10 +32,10 @@ class SparseTensor:
         self.vals = vals
 
     @classmethod
-    def dense2sparse(T : back.type()):
+    def dense2sparse(cls, T : back.type()):
         inds = [np.arange(mode, dtype=int) for mode in T.shape]
         grid_inds = tuple(I.flatten(order="F") for I in np.meshgrid(*inds, indexing="ij"))
-        return SparseTensor(T.shape, grid_inds, T.reshape(-1, order="F"))
+        return cls(T.shape, grid_inds, T.reshape(-1, order="F"))
 
     @property
     def ndim(self):
@@ -555,5 +555,6 @@ class SparseTucker(Tucker):
 
         core = sparse_tensor.contract(contraction_dict)
         sparse_tucker = cls(core=core, factors=factors, sparse_tensor=sparse_tensor)
-        sparse_tucker = cls.__HOOI(sparse_tensor, sparse_tucker, contraction_dict, eps)
+        if eps is not None:
+            sparse_tucker = cls.__HOOI(sparse_tensor, sparse_tucker, contraction_dict, eps)
         return sparse_tucker
