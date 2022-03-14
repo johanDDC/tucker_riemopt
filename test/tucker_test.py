@@ -3,29 +3,31 @@ import numpy as np
 
 from tucker_riemopt import Tucker
 from tucker_riemopt import backend as back
+from tucker_riemopt.tucker import SparseTensor
 
-def createTestTensor(n = 4):
-    """
-        A_ijk = i + j + k
-    """
-    x = back.arange(n) + 1
-    e = back.ones(n, dtype=back.float64)
-    A = back.einsum("i,j,k->ijk", x, e, e) + \
-        back.einsum("i,j,k->ijk", e, x, e) + \
-        back.einsum("i,j,k->ijk", e, e, x)
-    return A
 
 class TuckerTensorTest(TestCase):
     n = 4
 
+    def createTestTensor(self, n=4):
+        """
+            A_ijk = i + j + k
+        """
+        x = back.arange(n) + 1
+        e = back.ones(n, dtype=back.float64)
+        A = back.einsum("i,j,k->ijk", x, e, e) + \
+            back.einsum("i,j,k->ijk", e, x, e) + \
+            back.einsum("i,j,k->ijk", e, e, x)
+        return A
+
     def testFull2Tuck(self):
-        A = createTestTensor(self.n)
+        A = self.createTestTensor(self.n)
         A_tuck = Tucker.full2tuck(A, eps=1e-6)
         assert np.allclose(A, A_tuck.full())
         # self.assertAllClose(A, A_tuck.full(), rtol=1e-14)
 
     def testAdd(self):
-        A = createTestTensor(self.n)
+        A = self.createTestTensor(self.n)
         A = Tucker.full2tuck(A, eps=1e-6)
         A2 = A + A
         self.assertEqual(A2.rank, (4, 4, 4))
@@ -34,7 +36,7 @@ class TuckerTensorTest(TestCase):
         assert np.allclose((2 * A).full(), A2.full())
 
     def testMul(self):
-        A = createTestTensor(self.n)
+        A = self.createTestTensor(self.n)
         A_tuck = Tucker.full2tuck(A, eps=1e-6)
         self.assertEqual(A_tuck.rank, (2, 2, 2))
         A_tuck = A_tuck * A_tuck
@@ -43,13 +45,13 @@ class TuckerTensorTest(TestCase):
         self.assertEqual(A_tuck.rank, (3, 3, 3))
 
     def testNorm(self):
-        A = createTestTensor(self.n)
+        A = self.createTestTensor(self.n)
         A_tuck = Tucker.full2tuck(A, eps=1e-6)
         assert np.allclose(A_tuck.norm(qr_based=False), back.norm(A))
         assert np.allclose(A_tuck.norm(qr_based=True), back.norm(A))
 
     def testModeProd(self):
-        A = createTestTensor(self.n)
+        A = self.createTestTensor(self.n)
         Z = back.zeros((self.n, self.n, self.n))
         A_tuck = Tucker.full2tuck(A, eps=1e-6)
         M = back.zeros((self.n, self.n), dtype=A.dtype)
@@ -58,5 +60,53 @@ class TuckerTensorTest(TestCase):
         assert np.allclose(A_tuck.k_mode_product(2, M).full(), Z)
 
 
+class SparseTensorTest(TestCase):
+    def creareTestTensor(self):
+        return back.tensor([
+            [
+                [0, 1, 0, 0],
+                [2, 0, 0, 1],
+                [3, 0, 1, 0],
+            ],
+            [
+                [0, 0, 1, 1],
+                [0, 3, 1, 0],
+                [0, 0, 0, 0],
+            ]
+        ])
 
+    def testToDense(self):
+        inds = (
+            back.tensor([0, 1, 0, 0, 0, 1, 0, 1, 1], dtype=back.int32),
+            back.tensor([1, 0, 2, 0, 1, 1, 2, 0, 1], dtype=back.int32),
+            back.tensor([0, 3, 0, 1, 3, 1, 2, 2, 2], dtype=back.int32)
+        )
+        vals = back.tensor([2, 1, 3, 1, 1, 3, 1, 1, 1], dtype=back.int32)
+        shape = (2, 3, 4)
+        A = SparseTensor(shape, inds, vals)
+        assert np.all(A.to_dense() == self.creareTestTensor())
 
+    def testFromDense(self):
+        A = back.randn((3, 4, 5))
+        assert np.all(SparseTensor.dense2sparse(A).to_dense() == A)
+
+    def testUnfolding(self):
+        unfolding0 = back.tensor([[0, 2, 3, 1, 0, 0, 0, 0, 1, 0, 1, 0], [0, 0, 0, 0, 3, 0, 1, 1, 0, 1, 0, 0]])
+        unfolding1 = back.tensor([[0, 0, 1, 0, 0, 1, 0, 1], [2, 0, 0, 3, 0, 1, 1, 0], [3, 0, 0, 0, 1, 0, 0, 0]])
+        unfolding2 = back.tensor([[0, 0, 2, 0, 3, 0], [1, 0, 0, 3, 0, 0], [0, 1, 0, 1, 1, 0], [0, 1, 1, 0, 0, 0]])
+        A = self.creareTestTensor()
+        A = SparseTensor.dense2sparse(A)
+        assert np.all(A.unfolding(0).todense() == unfolding0)
+        assert np.all(A.unfolding(1).todense() == unfolding1)
+        assert np.all(A.unfolding(2).todense() == unfolding2)
+
+    def testContraction(self):
+        Xs = (
+            back.arange(1 * 2).reshape((1, 2)),
+            back.arange(2 * 3).reshape((2, 3)),
+            back.arange(1 * 4).reshape((1, 4)),
+        )
+        A = self.creareTestTensor()
+        A = SparseTensor.dense2sparse(A)
+        res = back.tensor([[[5], [35]]])
+        assert np.allclose(A.contract({0: Xs[0], 1: Xs[1], 2: Xs[2]}).to_dense(), res)
