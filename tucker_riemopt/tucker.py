@@ -489,17 +489,29 @@ class SparseTucker(Tucker):
     sparse_tensor : SparseTensor
 
     @staticmethod
-    def __HOOI(sparse_tensor, sparse_tucker, contraction_dict, eps):
+    def __HOOI(sparse_tensor, sparse_tucker, contraction_dict, maxiter):
         # contraction dict should contain transposed factors
-        err = back.norm(sparse_tensor.vals) - sparse_tucker.norm(qr_based=True)
-        while back.abs(err) > eps:
+        iteration = 1
+        while iteration <= maxiter:
             for k in range(sparse_tensor.ndim):
-                contraction_dict.pop(k)
+                r_k = contraction_dict.pop(k).shape[0]
                 W = sparse_tensor.contract(contraction_dict)
                 W_unfolding = W.unfolding(k)
-                W_unfolding = LinearOperator(W_unfolding.shape, matvec=lambda x: W_unfolding @ x,
-                                           rmatvec=lambda x: W_unfolding.T @ x)
-                factor = svds(W_unfolding, W_unfolding.shape[1], return_singular_vectors="u")[0]
+                if r_k >= min(W_unfolding.shape):
+                    # here we have to construct unfolding matrix in dense format, because there is no
+                    # method in libraries, which allows to get full svd (at least all left singular vectors)
+                    # of sparse matrix. If such method will be found, calculations here gain sufficient boost in
+                    # memory
+                    W_unfolding = W_unfolding.todense()
+                    if r_k > W_unfolding.shape[1]:
+                        factor = back.svd(W_unfolding)[0][:, :r_k]
+                    else:
+                        factor = back.svd(W_unfolding, full_matrices=False)[0]
+                else:
+                    W_unfolding_linop = LinearOperator(W_unfolding.shape, matvec=lambda x: W_unfolding @ x,
+                                               rmatvec=lambda x: W_unfolding.T @ x)
+                    factor = svds(W_unfolding_linop, r_k, return_singular_vectors="u")[0]
+
 
                 contraction_dict[k] = factor.T
                 sparse_tucker.factors[k] = factor
@@ -507,14 +519,14 @@ class SparseTucker(Tucker):
             tucker_core = sparse_tensor.contract(contraction_dict)
             tucker_core = tucker_core.to_dense()
             sparse_tucker = SparseTucker(tucker_core, sparse_tucker.factors, sparse_tensor)
-            err = back.norm(sparse_tensor.vals) - sparse_tucker.norm(qr_based=True)
+            iteration += 1
 
         return sparse_tucker
 
 
 
     @classmethod
-    def sparse2tuck(cls, sparse_tensor : SparseTensor, max_rank: ML_rank=None, eps=1e-14):
+    def sparse2tuck(cls, sparse_tensor : SparseTensor, max_rank: ML_rank=None, maxiter: Union[int, None]=5):
         """
             Gains sparse tensor and constructs its Sparse Tucker decomposition.
 
@@ -537,10 +549,9 @@ class SparseTucker(Tucker):
 
                   - ``max_rank = [r] * d``
 
-            eps: float or None
+            maxiter: int or None
 
-                - If float, than HOOI algorithm will be launched, until absolute error of Tucker representation of
-                sparse tensor not less than provided eps
+                - If int, than HOOI algorithm will be launched, until provided number of iterations not reached
 
                 - If None, no additional algorithms will be launched (note, that error in that case can be large)
         """
@@ -548,13 +559,13 @@ class SparseTucker(Tucker):
         contraction_dict = dict()
         for i, k in enumerate(range(sparse_tensor.ndim)):
             unfolding = sparse_tensor.unfolding(k)
-            unfolding = LinearOperator(unfolding.shape, matvec=lambda x: unfolding @ x,
+            unfolding_linop = LinearOperator(unfolding.shape, matvec=lambda x: unfolding @ x,
                                         rmatvec=lambda x: unfolding.T @ x)
-            factors.append(svds(unfolding, max_rank[k], return_singular_vectors="u")[0])
+            factors.append(svds(unfolding_linop, max_rank[k], return_singular_vectors="u")[0])
             contraction_dict[i] = factors[-1].T
 
         core = sparse_tensor.contract(contraction_dict)
-        sparse_tucker = cls(core=core, factors=factors, sparse_tensor=sparse_tensor)
-        if eps is not None:
-            sparse_tucker = cls.__HOOI(sparse_tensor, sparse_tucker, contraction_dict, eps)
+        sparse_tucker = cls(core=core.to_dense(), factors=factors, sparse_tensor=sparse_tensor)
+        if maxiter is not None:
+            sparse_tucker = cls.__HOOI(sparse_tensor, sparse_tucker, contraction_dict, maxiter)
         return sparse_tucker
