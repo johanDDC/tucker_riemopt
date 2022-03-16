@@ -3,7 +3,7 @@ import numpy as np
 
 from tucker_riemopt import Tucker
 from tucker_riemopt import backend as back
-from tucker_riemopt.tucker import SparseTensor
+from tucker_riemopt.tucker import SparseTensor, SparseTucker
 
 
 class TuckerTensorTest(TestCase):
@@ -110,3 +110,31 @@ class SparseTensorTest(TestCase):
         A = SparseTensor.dense2sparse(A)
         res = back.tensor([[[5], [35]]])
         assert np.allclose(A.contract({0: Xs[0], 1: Xs[1], 2: Xs[2]}).to_dense(), res)
+
+
+class SparseTuckerTest(TestCase):
+    def creareTestTensor(self):
+        return back.tensor([
+            [
+                [0, 1, 0, 0],
+                [2, 0, 0, 1],
+                [3, 0, 1, 0],
+            ],
+            [
+                [0, 0, 1, 1],
+                [0, 3, 1, 0],
+                [0, 0, 0, 0],
+            ]
+        ])
+
+    def testSparseHOSVD(self):
+        A = self.creareTestTensor()
+        A = SparseTensor.dense2sparse(A)
+        A_tuck = SparseTucker.sparse2tuck(A, max_rank=(1, 2, 3), eps=None)
+        assert back.norm(A.to_dense() - A_tuck.full()) / back.norm(A.to_dense()) <= 0.71
+
+    def testHOOI(self):
+        A = self.creareTestTensor()
+        A = SparseTensor.dense2sparse(A)
+        A_tuck = SparseTucker.sparse2tuck(A, max_rank=(1, 2, 3))
+        assert back.norm(A.to_dense() - A_tuck.full()) / back.norm(A.to_dense()) <= 0.68
