@@ -402,6 +402,20 @@ class Tucker:
         other = -other
         return self + other
 
+    def __getitem__(self, key):
+        """
+            Returns element or a batch of element on positions provided in key parameter.
+
+            Parameters
+            ----------
+            key : Sequence[Sequence[int]] or  Sequence[Sequence[Sequence[int]]]
+                arrays of indices in dense tensor, or batch of indices.
+                For instance A[[i], [j], [k]] will return element on (i, j, k) position
+                A[[i1, i2], [j1, j2], [k1, k2]] will return 2 elements on positions (i1, j1, k1) and
+                (i2, j2, k2) correspondingly.
+        """
+        raise NotImplementedError()
+
     def round(self, max_rank: ML_rank = None, eps=1e-14):
         """
         HOSVD rounding procedure, returns a Tucker with smaller ranks.
