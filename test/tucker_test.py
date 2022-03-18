@@ -1,9 +1,8 @@
 from unittest import TestCase
 import numpy as np
 
-from tucker_riemopt import Tucker
+from tucker_riemopt import Tucker, SparseTensor
 from tucker_riemopt import backend as back
-from tucker_riemopt.tucker import SparseTensor, SparseTucker
 
 
 class TuckerTensorTest(TestCase):
@@ -130,11 +129,11 @@ class SparseTuckerTest(TestCase):
     def testSparseHOSVD(self):
         A = self.creareTestTensor()
         A = SparseTensor.dense2sparse(A)
-        A_tuck = SparseTucker.sparse2tuck(A, max_rank=(1, 2, 3), eps=None)
+        A_tuck = Tucker.sparse2tuck(A, max_rank=(1, 2, 3), maxiter=None)
         assert back.norm(A.to_dense() - A_tuck.full()) / back.norm(A.to_dense()) <= 0.71
 
     def testHOOI(self):
         A = self.creareTestTensor()
         A = SparseTensor.dense2sparse(A)
-        A_tuck = SparseTucker.sparse2tuck(A, max_rank=(1, 2, 3))
+        A_tuck = Tucker.sparse2tuck(A, max_rank=(1, 2, 3))
         assert back.norm(A.to_dense() - A_tuck.full()) / back.norm(A.to_dense()) <= 0.68

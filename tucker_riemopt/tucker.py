@@ -41,6 +41,10 @@ class SparseTensor:
     def ndim(self):
         return len(self.shape)
 
+    @property
+    def nnz(self):
+        return len(self.vals)
+
     def unfolding(self, k):
         def multiindex(p):
             """
@@ -91,6 +95,40 @@ class SparseTensor:
         vals = unfolding.data
         inds = detach_multiindex(k, (unfolding.row, unfolding.col))
         return SparseTensor(shape, inds, vals)
+    
+    def reshape(self, new_shape : Sequence[Sequence[int]]):
+        """
+            Reshape sparse tensor.
+
+            Parameters
+            ----------
+             new_shape : Sequence[Sequence[int]]
+                Maps old tensor shape to a new one. For example, if tensor was of order 3 of shape (512, 512, 3), then
+                 each of its element had 3 indices (i, j, k). Now we want to reshape it to tensor of order 5 of shape
+                 (64, 8, 64, 8, 3). Then `new_shape` parameter will look like [[64, 8], [64, 8], [3]].
+        """
+        def detach_multiindex(multiindex, shape):
+            """
+                Performs detaching of multiindex back to tuple of indices. Excepts p-mode.
+            """
+            inds = []
+            dynamic = np.zeros_like(multiindex)  # use dynamic programming to prevent d**2 complexity
+            shape_prod = back.prod(back.tensor(shape))
+            for i in range(len(shape) - 1, -1, -1):
+                shape_prod //= shape[i]
+                inds.append((multiindex - dynamic) // shape_prod)
+                dynamic += inds[-1] * shape_prod
+            return inds[::-1]
+
+        new_inds = None
+        shape_new = []
+        for i, shape in enumerate(new_shape):
+            # new_shape_inds = back.zeros((len(shape), self.nnz), dtype=back.int32)
+            shape_new += shape
+            new_shape_inds = back.tensor(detach_multiindex(self.inds[i], shape))
+            new_inds = new_shape_inds if new_inds is None else back.concatenate((new_inds, new_shape_inds))
+
+        return SparseTensor(shape_new, new_inds, back.copy(self.vals))
 
 
     def contract(self, contraction_dict : Dict[int, back.type()]):
@@ -140,6 +178,41 @@ ML_rank = Union[int, Sequence[int]]
 class Tucker:
     core: back.type()
     factors: List[back.type()]
+
+    @staticmethod
+    def __HOOI(sparse_tensor, sparse_tucker, contraction_dict, maxiter):
+        # contraction dict should contain transposed factors
+        iteration = 1
+        while iteration <= maxiter:
+            for k in range(sparse_tensor.ndim):
+                r_k = contraction_dict.pop(k).shape[0]
+                W = sparse_tensor.contract(contraction_dict)
+                W_unfolding = W.unfolding(k)
+                if r_k >= min(W_unfolding.shape):
+                    # here we have to construct unfolding matrix in dense format, because there is no
+                    # method in libraries, which allows to get full svd (at least all left singular vectors)
+                    # of sparse matrix. If such method will be found, calculations here gain sufficient boost in
+                    # memory
+                    W_unfolding = W_unfolding.todense()
+                    if r_k > W_unfolding.shape[1]:
+                        factor = back.svd(W_unfolding)[0][:, :r_k]
+                    else:
+                        factor = back.svd(W_unfolding, full_matrices=False)[0]
+                else:
+                    W_unfolding_linop = LinearOperator(W_unfolding.shape, matvec=lambda x: W_unfolding @ x,
+                                               rmatvec=lambda x: W_unfolding.T @ x)
+                    factor = svds(W_unfolding_linop, r_k, return_singular_vectors="u")[0]
+
+
+                contraction_dict[k] = factor.T
+                sparse_tucker.factors[k] = factor
+
+            tucker_core = sparse_tensor.contract(contraction_dict)
+            tucker_core = tucker_core.to_dense()
+            sparse_tucker = Tucker(tucker_core, sparse_tucker.factors)
+            iteration += 1
+
+        return sparse_tucker
 
     @classmethod
     def full2tuck(cls, T : back.type(), max_rank: ML_rank=None, eps=1e-14):
@@ -211,7 +284,7 @@ class Tucker:
         return cls(core, factors)
 
     @classmethod
-    def sparse2tuck(cls, sparse_tensor : SparseTensor, max_rank: ML_rank=None, eps=1e-14):
+    def sparse2tuck(cls, sparse_tensor : SparseTensor, max_rank: ML_rank=None, maxiter: Union[int, None]=5):
         """
             Gains sparse tensor and constructs its Sparse Tucker decomposition.
 
@@ -234,55 +307,26 @@ class Tucker:
 
                   - ``max_rank = [r] * d``
 
-            eps: float or None
+            maxiter: int or None
 
-                - If float, than HOOI algorithm will be launched, until absolute error of Tucker representation of
-                sparse tensor not less than provided eps
-
-                - If None, no additional algorithms will be launched (note, that error in that case can be large)
-        """
-        return SparseTucker.sparse2tuck(sparse_tensor, max_rank, eps)
-
-    @classmethod
-    def sparse2tuck(cls, shape : Sequence[int], inds : Sequence[Sequence[int]], vals : Sequence[back.float64],
-                    max_rank: ML_rank = None, eps=1e-14):
-        """
-            Gains tuple of indices and corresponding values of tensor and constructs Tucker decomposition.
-            Constructed Tucker assumes, that there are `vals` on corresponding `inds` positions, and zeros on other.
-
-            Parameters
-            ----------
-            shape: tuple
-                tensor shape
-
-            inds: tuple of integer arrays of size nnz
-                positions of nonzero elements
-
-            vals: list of size nnz
-                corresponding values
-
-            max_rank: int, Sequence[int] or None
-
-                - If a number, than defines the maximal `rank` of the result.
-
-                - If a list of numbers, than `max_rank` length should be d
-                  (number of dimensions) and `max_rank[i]`
-                  defines the (i)-th `rank` of the result.
-
-                  The following two versions are equivalent
-
-                  - ``max_rank = r``
-
-                  - ``max_rank = [r] * d``
-
-            eps: float or None
-
-                - If float, than HOOI algorithm will be launched, until absolute error of Tucker representation of
-                sparse tensor not less than provided eps
+                - If int, than HOOI algorithm will be launched, until provided number of iterations not reached
 
                 - If None, no additional algorithms will be launched (note, that error in that case can be large)
         """
-        return SparseTucker.sparse2tuck(SparseTensor(shape, inds, vals), max_rank, eps)
+        factors = []
+        contraction_dict = dict()
+        for i, k in enumerate(range(sparse_tensor.ndim)):
+            unfolding = sparse_tensor.unfolding(k)
+            unfolding_linop = LinearOperator(unfolding.shape, matvec=lambda x: unfolding @ x,
+                                             rmatvec=lambda x: unfolding.T @ x)
+            factors.append(svds(unfolding_linop, max_rank[k], return_singular_vectors="u")[0])
+            contraction_dict[i] = factors[-1].T
+
+        core = sparse_tensor.contract(contraction_dict)
+        sparse_tucker = cls(core=core.to_dense(), factors=factors)
+        if maxiter is not None:
+            sparse_tucker = cls.__HOOI(sparse_tensor, sparse_tucker, contraction_dict, maxiter)
+        return sparse_tucker
 
     @property
     def shape(self):
@@ -477,95 +521,3 @@ class Tucker:
         return self.__class__(new_core, new_factors)
 
 TangentVector = Tucker
-
-@struct.dataclass
-class SparseTucker(Tucker):
-    """
-        Represents sparse tensor in Tucker format.
-        Sparse Tucker is such tensor decomposition that minimizes error on known values and
-        treats others as zeros.
-    """
-
-    sparse_tensor : SparseTensor
-
-    @staticmethod
-    def __HOOI(sparse_tensor, sparse_tucker, contraction_dict, maxiter):
-        # contraction dict should contain transposed factors
-        iteration = 1
-        while iteration <= maxiter:
-            for k in range(sparse_tensor.ndim):
-                r_k = contraction_dict.pop(k).shape[0]
-                W = sparse_tensor.contract(contraction_dict)
-                W_unfolding = W.unfolding(k)
-                if r_k >= min(W_unfolding.shape):
-                    # here we have to construct unfolding matrix in dense format, because there is no
-                    # method in libraries, which allows to get full svd (at least all left singular vectors)
-                    # of sparse matrix. If such method will be found, calculations here gain sufficient boost in
-                    # memory
-                    W_unfolding = W_unfolding.todense()
-                    if r_k > W_unfolding.shape[1]:
-                        factor = back.svd(W_unfolding)[0][:, :r_k]
-                    else:
-                        factor = back.svd(W_unfolding, full_matrices=False)[0]
-                else:
-                    W_unfolding_linop = LinearOperator(W_unfolding.shape, matvec=lambda x: W_unfolding @ x,
-                                               rmatvec=lambda x: W_unfolding.T @ x)
-                    factor = svds(W_unfolding_linop, r_k, return_singular_vectors="u")[0]
-
-
-                contraction_dict[k] = factor.T
-                sparse_tucker.factors[k] = factor
-
-            tucker_core = sparse_tensor.contract(contraction_dict)
-            tucker_core = tucker_core.to_dense()
-            sparse_tucker = SparseTucker(tucker_core, sparse_tucker.factors, sparse_tensor)
-            iteration += 1
-
-        return sparse_tucker
-
-
-
-    @classmethod
-    def sparse2tuck(cls, sparse_tensor : SparseTensor, max_rank: ML_rank=None, maxiter: Union[int, None]=5):
-        """
-            Gains sparse tensor and constructs its Sparse Tucker decomposition.
-
-            Parameters
-            ----------
-            sparse_tensor: SparseTensor
-                Tensor in dense format
-
-            max_rank: int, Sequence[int] or None
-
-                - If a number, than defines the maximal `rank` of the result.
-
-                - If a list of numbers, than `max_rank` length should be d
-                  (number of dimensions) and `max_rank[i]`
-                  defines the (i)-th `rank` of the result.
-
-                  The following two versions are equivalent
-
-                  - ``max_rank = r``
-
-                  - ``max_rank = [r] * d``
-
-            maxiter: int or None
-
-                - If int, than HOOI algorithm will be launched, until provided number of iterations not reached
-
-                - If None, no additional algorithms will be launched (note, that error in that case can be large)
-        """
-        factors = []
-        contraction_dict = dict()
-        for i, k in enumerate(range(sparse_tensor.ndim)):
-            unfolding = sparse_tensor.unfolding(k)
-            unfolding_linop = LinearOperator(unfolding.shape, matvec=lambda x: unfolding @ x,
-                                        rmatvec=lambda x: unfolding.T @ x)
-            factors.append(svds(unfolding_linop, max_rank[k], return_singular_vectors="u")[0])
-            contraction_dict[i] = factors[-1].T
-
-        core = sparse_tensor.contract(contraction_dict)
-        sparse_tucker = cls(core=core.to_dense(), factors=factors, sparse_tensor=sparse_tensor)
-        if maxiter is not None:
-            sparse_tucker = cls.__HOOI(sparse_tensor, sparse_tucker, contraction_dict, maxiter)
-        return sparse_tucker
