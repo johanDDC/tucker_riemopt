@@ -27,15 +27,15 @@ class SparseTensor:
 
         assert len(inds) == len(shape) >= 1
         assert len(vals) == len(inds[0])
-        self.shape = shape
-        self.inds = inds
-        self.vals = vals
+        self.shape = back.to_numpy(shape)
+        self.inds = back.to_numpy(inds)
+        self.vals = back.to_numpy(vals)
 
     @classmethod
     def dense2sparse(cls, T : back.type()):
         inds = [np.arange(mode, dtype=int) for mode in T.shape]
         grid_inds = tuple(I.flatten(order="F") for I in np.meshgrid(*inds, indexing="ij"))
-        return cls(T.shape, grid_inds, T.reshape(-1, order="F"))
+        return cls(T.shape, grid_inds, back.reshape(T, (-1,), order="F"))
 
     @property
     def ndim(self):
@@ -55,7 +55,7 @@ class SparseTensor:
                 if i != p:
                     shape_prod = 1
                     if i != 0:
-                        shape_prod = back.prod(back.tensor(self.shape)[:i])
+                        shape_prod = np.prod(self.shape[:i])
                     if i > p:
                         shape_prod //= self.shape[p]
                     joined_ind += self.inds[i] * shape_prod
@@ -66,7 +66,7 @@ class SparseTensor:
         row = self.inds[k]
         col = multiindex(k)
         unfolding = coo_matrix((self.vals, (row, col)),
-                                    shape=(self.shape[k], back.prod(back.tensor(self.shape)) // self.shape[k]))
+                                    shape=(self.shape[k], np.prod(self.shape) // self.shape[k]))
         return unfolding.tocsr()
 
     @staticmethod
@@ -80,7 +80,7 @@ class SparseTensor:
             """
             inds = []
             dynamic = np.zeros_like(multiindex[1]) # use dynamic programming to prevent d**2 complexity
-            shape_prod = back.prod(back.tensor(shape)) // shape[p]
+            shape_prod = np.prod(shape) // shape[p]
             # shape_prod //= shape[-2] if p == len(shape) - 1 else shape[-1]
             for i in range(len(shape) - 1, -1, -1):
                 if i != p:
@@ -193,7 +193,7 @@ class Tucker:
                     # method in libraries, which allows to get full svd (at least all left singular vectors)
                     # of sparse matrix. If such method will be found, calculations here gain sufficient boost in
                     # memory
-                    W_unfolding = W_unfolding.todense()
+                    W_unfolding = back.tensor(W_unfolding.todense())
                     if r_k > W_unfolding.shape[1]:
                         factor = back.svd(W_unfolding)[0][:, :r_k]
                     else:
@@ -201,7 +201,7 @@ class Tucker:
                 else:
                     W_unfolding_linop = LinearOperator(W_unfolding.shape, matvec=lambda x: W_unfolding @ x,
                                                rmatvec=lambda x: W_unfolding.T @ x)
-                    factor = svds(W_unfolding_linop, r_k, return_singular_vectors="u")[0]
+                    factor = back.tensor(svds(W_unfolding_linop, r_k, return_singular_vectors="u")[0])
 
 
                 contraction_dict[k] = factor.T
@@ -319,11 +319,11 @@ class Tucker:
             unfolding = sparse_tensor.unfolding(k)
             unfolding_linop = LinearOperator(unfolding.shape, matvec=lambda x: unfolding @ x,
                                              rmatvec=lambda x: unfolding.T @ x)
-            factors.append(svds(unfolding_linop, max_rank[k], return_singular_vectors="u")[0])
+            factors.append(back.tensor(svds(unfolding_linop, max_rank[k], return_singular_vectors="u")[0]))
             contraction_dict[i] = factors[-1].T
 
         core = sparse_tensor.contract(contraction_dict)
-        sparse_tucker = cls(core=core.to_dense(), factors=factors)
+        sparse_tucker = cls(core=back.tensor(core.to_dense()), factors=factors)
         if maxiter is not None:
             sparse_tucker = cls.__HOOI(sparse_tensor, sparse_tucker, contraction_dict, maxiter)
         return sparse_tucker
