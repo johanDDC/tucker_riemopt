@@ -3,6 +3,7 @@ import numpy as np
 
 from tucker_riemopt import Tucker, SparseTensor
 from tucker_riemopt import backend as back
+from tucker_riemopt import set_backend
 
 
 class TuckerTensorTest(TestCase):
@@ -83,11 +84,11 @@ class SparseTensorTest(TestCase):
         vals = back.tensor([2, 1, 3, 1, 1, 3, 1, 1, 1], dtype=back.int32)
         shape = (2, 3, 4)
         A = SparseTensor(shape, inds, vals)
-        assert np.all(A.to_dense() == self.creareTestTensor())
+        assert (A.to_dense() == self.creareTestTensor()).all()
 
     def testFromDense(self):
         A = back.randn((3, 4, 5))
-        assert np.all(SparseTensor.dense2sparse(A).to_dense() == A)
+        assert (SparseTensor.dense2sparse(A).to_dense() == A).all()
 
     def testUnfolding(self):
         unfolding0 = back.tensor([[0, 2, 3, 1, 0, 0, 0, 0, 1, 0, 1, 0], [0, 0, 0, 0, 3, 0, 1, 1, 0, 1, 0, 0]])
@@ -95,9 +96,9 @@ class SparseTensorTest(TestCase):
         unfolding2 = back.tensor([[0, 0, 2, 0, 3, 0], [1, 0, 0, 3, 0, 0], [0, 1, 0, 1, 1, 0], [0, 1, 1, 0, 0, 0]])
         A = self.creareTestTensor()
         A = SparseTensor.dense2sparse(A)
-        assert np.all(A.unfolding(0).todense() == unfolding0)
-        assert np.all(A.unfolding(1).todense() == unfolding1)
-        assert np.all(A.unfolding(2).todense() == unfolding2)
+        assert (back.tensor(A.unfolding(0).todense()) == unfolding0).all()
+        assert (back.tensor(A.unfolding(1).todense()) == unfolding1).all()
+        assert (back.tensor(A.unfolding(2).todense()) == unfolding2).all()
 
     def testContraction(self):
         Xs = (
@@ -127,12 +128,14 @@ class SparseTuckerTest(TestCase):
         ])
 
     def testSparseHOSVD(self):
+        set_backend("pytorch")
         A = self.creareTestTensor()
         A = SparseTensor.dense2sparse(A)
         A_tuck = Tucker.sparse2tuck(A, max_rank=(1, 2, 3), maxiter=None)
         assert back.norm(A.to_dense() - A_tuck.full()) / back.norm(A.to_dense()) <= 0.71
 
     def testHOOI(self):
+        set_backend("pytorch")
         A = self.creareTestTensor()
         A = SparseTensor.dense2sparse(A)
         A_tuck = Tucker.sparse2tuck(A, max_rank=(1, 2, 3))
