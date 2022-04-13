@@ -93,9 +93,13 @@ class LineSearchTool(object):
         alpha = previous_alpha if previous_alpha is not None else self.alpha_0
         armijo_threshold = self.c1 * alpha * d_k.norm(qr_based=True) ** 2
         fx = func(x_k)
+        iters = 0
         while fx - func((x_k + alpha * d_k).round(rank)) < armijo_threshold:
             alpha /= 2
             armijo_threshold /= 2
+            iters += 1
+            if iters > 10:
+                return alpha
         return alpha
 
     def line_search(self, func: Callable[[TangentVector], Tucker], x_k: Tucker, g_k: Tucker, d_k: TangentVector, rank: ML_rank, previous_alpha=None):
