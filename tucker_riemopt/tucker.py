@@ -510,7 +510,7 @@ class Tucker:
 
             new_tensor = Tucker(self.core, core_factors)
             new_tensor = new_tensor.full()
-            return np.linalg.norm(new_tensor)
+            return back.norm(new_tensor)
 
         return back.sqrt(self.flat_inner(self))
 
