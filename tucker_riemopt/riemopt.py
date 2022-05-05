@@ -15,11 +15,18 @@ def group_cores(core1, core2):
     return new_core
 
 
-def compute_gradient_projection(func, T):
+def compute_gradient_projection(func, T, retain_graph=False):
     """
-    Input
-        X: tensor from manifold
-        
+    Computes riemann gradient of given function in given point of manifold
+
+    Parameters
+        func: Callable
+        T: Tucker
+            Tensor from manifold
+        retain_graph: bool
+            Whether you want go backwards through computational graph multiple times
+            (may be significant for some backgrounds like PyTorch)
+
      Output
         proj: projections of gradient onto the tangent space
     """
@@ -31,7 +38,7 @@ def compute_gradient_projection(func, T):
         T = Tucker(new_core, new_factors)
         return func(T)
 
-    dg = back.grad(g, [1, 2])
+    dg = back.grad(g, [1, 2], retain_graph=retain_graph)
 
     dS, dU = dg(T, T.core, [back.zeros_like(T.factors[i]) for i in range(T.ndim)])
     dU = [dU[i] - T.factors[i] @ (T.factors[i].T @ dU[i]) for i in range(len(dU))]
