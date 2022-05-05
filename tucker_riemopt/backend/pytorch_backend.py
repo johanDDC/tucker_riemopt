@@ -222,7 +222,7 @@ class PyTorchBackend(Backend, backend_name="pytorch"):
         return torch.cumsum(tensor, dim=-1 if axis is None else axis)
 
     @staticmethod
-    def grad(func: typing.Callable, argnums: typing.Union[int, typing.Sequence[int]] = 0, retaing_graph=False):
+    def grad(func: typing.Callable, argnums: typing.Union[int, typing.Sequence[int]] = 0, retain_graph=False):
         def grad_tensor(tensor):
             return tensor.grad
 
@@ -255,15 +255,16 @@ class PyTorchBackend(Backend, backend_name="pytorch"):
         def detach(args, argnums):
             for arg in argnums:
                 if type(args[arg]) is PyTorchBackend.type():
-                    if not args[arg].is_leaf:
+                    if args[arg].is_leaf:
                         args[arg] = args[arg].detach()
                 elif type(args[arg]) is list:
                     detach(args[arg], np.arange(0, len(args[arg])))
 
 
         def aux_func(*args):
+            args = list(args)
             set_require_grad(args, argnums if type(argnums) is list else [argnums])
-            func(*args).backward(retaing_graph=retaing_graph)
+            func(*args).backward(retain_graph=retain_graph)
             if type(argnums) is int:
                 grads = process_grad(args[argnums])
                 detach([grads], [0])
