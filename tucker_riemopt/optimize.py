@@ -76,6 +76,7 @@ class LineSearchTool(object):
         self.alpha_0 = kwargs.get('alpha_0', 1.0)
         if self._method == 'Armijo':
             self.c1 = kwargs.get('c1', 1e-4)
+            self.max_iter = kwargs.get('max_iter', 30)
         elif self._method == 'Custom':
             self.custom_func = kwargs.get('f', lambda *args: self.alpha_0)
             self.adjust = kwargs.get('adjust', False)
@@ -98,7 +99,7 @@ class LineSearchTool(object):
             alpha /= 2
             armijo_threshold /= 2
             iters += 1
-            if iters > 10:
+            if iters > self.max_iter:
                 return alpha
         return alpha
 
