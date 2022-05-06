@@ -44,7 +44,7 @@ def compute_gradient_projection(func, T, retain_graph=False):
     dU = [dU[i] - T.factors[i] @ (T.factors[i].T @ dU[i]) for i in range(len(dU))]
     return Tucker(group_cores(dS, T.core), [back.concatenate([T.factors[i], dU[i]], axis=1) for i in range(T.ndim)])
 
-def vector_transport(x: Tucker, y: Tucker, xi: Tucker):
+def vector_transport(x: Tucker, y: Tucker, xi: Tucker, retain_graph=False):
     """
         Performs vector transport of tangent vector `xi` from `T_xM` to T_yM.
 
@@ -61,4 +61,4 @@ def vector_transport(x: Tucker, y: Tucker, xi: Tucker):
             Result of vector transport `xi`.
     """
     f = lambda u: u.flat_inner(xi)
-    return compute_gradient_projection(f, y)
+    return compute_gradient_projection(f, y, retain_graph)
