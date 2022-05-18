@@ -246,7 +246,7 @@ class PyTorchBackend(Backend, backend_name="pytorch"):
             for arg in argnums:
                 if type(args[arg]) is PyTorchBackend.type():
                     if args[arg].is_leaf:
-                        args[arg].requires_grad = True
+                        args[arg].requires_grad_(True)
                     else:
                         args[arg].retain_grad()
                 elif type(args[arg]) is list:
@@ -256,7 +256,8 @@ class PyTorchBackend(Backend, backend_name="pytorch"):
             for arg in argnums:
                 if type(args[arg]) is PyTorchBackend.type():
                     if args[arg].is_leaf:
-                        args[arg] = args[arg].detach()
+                        args[arg].requires_grad_(False)
+                        args[arg].grad = None
                 elif type(args[arg]) is list:
                     detach(args[arg], np.arange(0, len(args[arg])))
 
