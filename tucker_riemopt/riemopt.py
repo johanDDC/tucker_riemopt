@@ -9,7 +9,7 @@ def group_cores(core1, core2):
     to_concat = core2
 
     for i in range(d):
-        to_concat = back.pad(to_concat, [(0, r[j]) if j == i - 1 else (0, 0) for j in range(d)], constant_values=0)
+        to_concat = back.pad(to_concat, [(0, r[j]) if j == i - 1 else (0, 0) for j in range(d)], mode="constant", constant_values=0)
         new_core = back.concatenate([new_core, to_concat], axis=i)
 
     return new_core

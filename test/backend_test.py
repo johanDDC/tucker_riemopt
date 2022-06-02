@@ -1,5 +1,6 @@
 from unittest import TestCase
-from tucker_riemopt import set_backend
+from tucker_riemopt import set_backend, backend
+import numpy as np
 
 import tucker_test
 

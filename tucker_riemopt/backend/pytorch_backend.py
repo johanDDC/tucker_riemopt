@@ -1,5 +1,6 @@
 import warnings
 from distutils.version import LooseVersion
+import itertools
 
 try:
     import torch
@@ -280,14 +281,32 @@ class PyTorchBackend(Backend, backend_name="pytorch"):
         return aux_func
 
     @staticmethod
-    def pad(tensor, pad_width, constant_values):
-        from torch.nn.functional import pad
-        flat_pad_width = []
-        for pair in pad_width:
-            flat_pad_width.append(pair[1])
-            flat_pad_width.append(pair[0])
-        flat_pad_width = flat_pad_width[::-1]
-        return pad(tensor, flat_pad_width, "constant", 0)
+    def pad(tensor, pad_width, mode, **kwargs):
+        def get_mode_torch(mode_numpy):
+            if mode_numpy in ['reflect', 'constant']:
+                return mode_numpy
+            elif mode_numpy == 'edge':
+                return 'replicate'
+            elif mode_numpy == 'wrap':
+                return 'circular'
+            else:
+                assert False, f'NumPy mode "{mode_numpy}" has no PyTorch equivalent'
+
+        def get_pad_width_torch(pad_width_numpy, mode_torch):
+            pad_width_torch = tuple(itertools.chain.from_iterable(reversed(pad_width_numpy)))
+
+            if mode_torch in ['reflect', 'replicate', 'circular']:
+                assert all([p == 0 for p in pad_width_torch[
+                                            -4:]]), f'Cannot pad first two dimensions in PyTorch with mode="{mode_torch}"'
+                return pad_width_torch[:-4]
+
+            return pad_width_torch
+
+        mode_torch = get_mode_torch(mode)
+        pad_width_torch = get_pad_width_torch(pad_width, mode_torch)
+        value = kwargs.get("constant_values")
+        res = torch.nn.functional.pad(tensor, pad_width_torch, mode=mode_torch, value=value)
+        return res
 
 
 for name in ["float64", "float32", "int64", "int32", "complex128", "complex64",

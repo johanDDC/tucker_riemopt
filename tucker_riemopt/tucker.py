@@ -368,8 +368,8 @@ class Tucker:
         factors = []
         r1 = self.rank
         r2 = other.rank
-        padded_core1 = back.pad(self.core, [(0, r2[j]) if j > 0 else (0, 0) for j in range(self.ndim)], 0)
-        padded_core2 = back.pad(other.core, [(r1[j], 0) if j > 0 else (0, 0) for j in range(other.ndim)], 0)
+        padded_core1 = back.pad(self.core, [(0, r2[j]) if j > 0 else (0, 0) for j in range(self.ndim)], mode="constant", constant_values=0)
+        padded_core2 = back.pad(other.core, [(r1[j], 0) if j > 0 else (0, 0) for j in range(other.ndim)], mode="constant", constant_values=0)
         core = back.concatenate((padded_core1, padded_core2), axis=0)
         for i in range(self.ndim):
             factors.append(back.concatenate((self.factors[i], other.factors[i]), axis=1))
