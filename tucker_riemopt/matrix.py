@@ -12,7 +12,8 @@ class TuckerMatrix(Tucker):
 
     @classmethod
     def full2tuck(cls, T : back.type, n=None, m=None, max_rank=None, eps=1e-14):
-        T = Tucker.full2tuck(T, max_rank=max_rank, eps=eps)
+        T = Tucker.full2tuck(T, eps=eps)
+        T = T.round(max_rank=max_rank)
         return cls(T.core, T.factors, back.tensor(n), back.tensor(m))
 
     def __matmul__(self, other):
