@@ -24,20 +24,20 @@ class TuckerTensorTest(TestCase):
         A = self.createTestTensor(self.n)
         A_tuck = Tucker.full2tuck(A, eps=1e-6)
         assert np.allclose(A, A_tuck.full())
-        # self.assertAllClose(A, A_tuck.full(), rtol=1e-14)
 
     def testAdd(self):
         A = self.createTestTensor(self.n)
         A = Tucker.full2tuck(A, eps=1e-6)
         A2 = A + A
         self.assertEqual(A2.rank, (4, 4, 4))
-        A2 = A2.round(eps=1e-6)
+        A2 = A2.round(A.rank)
         self.assertEqual(A2.rank, (2, 2, 2))
         assert np.allclose((2 * A).full(), A2.full())
 
     def testMul(self):
         A = self.createTestTensor(self.n)
         A_tuck = Tucker.full2tuck(A, eps=1e-6)
+        A_rank = A_tuck.rank
         self.assertEqual(A_tuck.rank, (2, 2, 2))
         A_tuck = A_tuck * A_tuck
         self.assertEqual(A_tuck.rank, (4, 4, 4))

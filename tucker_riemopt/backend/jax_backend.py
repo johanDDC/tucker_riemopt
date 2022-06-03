@@ -12,6 +12,7 @@ except ImportError as error:
 import numpy
 import copy
 import typing
+from opt_einsum import contract
 
 from .backend import Backend
 
@@ -96,11 +97,15 @@ class JaxBackend(Backend, backend_name="jax"):
     def pad(tensor, pad_width, mode, **kwargs):
         return jnp.pad(tensor, pad_width, mode=mode, **kwargs)
 
+    @staticmethod
+    def einsum(subscripts, *operands):
+        return contract(subscripts, *operands)
+
 for name in ["int64", "int32", "float64", "float32", "complex128", "complex64", "reshape",
              "where", "transpose", "arange", "ones", "zeros", "flip", "trace", "any",
              "zeros_like", "eye", "kron", "concatenate", "max", "min", "matmul",
              "all", "mean", "sum", "cumsum", "count_nonzero", "prod", "sign", "abs", "sqrt", "argmin",
-             "argmax", "stack", "conj", "diag", "clip", "einsum", "log2", "sin", "cos", "squeeze"]:
+             "argmax", "stack", "conj", "diag", "clip", "log2", "sin", "cos", "squeeze"]:
     JaxBackend.register_method(name, getattr(jnp, name))
 
 for name in ["solve", "qr", "svd", "eigh"]:

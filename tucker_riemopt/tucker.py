@@ -215,7 +215,7 @@ class Tucker:
         return sparse_tucker
 
     @classmethod
-    def full2tuck(cls, T : back.type(), max_rank: ML_rank=None, eps=1e-14):
+    def full2tuck(cls, T : back.type(), eps=1e-14):
         """
             Convert full tensor T to Tucker by applying HOSVD algorithm.
 
@@ -247,25 +247,19 @@ class Tucker:
 
                 - If `max_rank` is provided, than this parameter is ignored
         """
-        def rank_trucation(unfolding_svd, factor_id):
-            u, s, _ = unfolding_svd
-            rank = max_rank if type(max_rank) is int else max_rank[factor_id]
-            return u[:, :rank]
-
-        def eps_trunctation(unfolding_svd):
-            u, s, _ = unfolding_svd
-            eps_svd = eps / np.sqrt(d) * np.sqrt(s.T @ s)
-            cumsum = np.cumsum(list(reversed(s)))
-            cumsum = (cumsum <= back.to_numpy(eps_svd))
-            rank = len(s) - cumsum.argmin()
-            return u[:, :rank]
-
         if eps < 0:
             raise ValueError("eps should be greater or equal than 0")
         d = len(T.shape)
+
+        def eps_trunctation(unfolding_svd):
+            u, s, _ = unfolding_svd
+            eps_svd = eps / np.sqrt(d) * back.sqrt(s @ s)
+            cumsum = back.cumsum(back.flip(s))
+            cumsum = back.flip(~(cumsum <= eps_svd))
+            return u[:, cumsum]
+
         modes = list(np.arange(0, d))
         factors = []
-        UT = []
         tensor_letters = ascii_letters[:d]
         factor_letters = ""
         core_letters = ""
@@ -273,14 +267,13 @@ class Tucker:
             unfolding = back.transpose(T, [modes[k], *(modes[:k] + modes[k+1:])])
             unfolding = back.reshape(unfolding, (T.shape[k], -1), order="F")
             unfolding_svd = back.svd(unfolding, full_matrices=False)
-            u = rank_trucation(unfolding_svd, i) if max_rank is not None else eps_trunctation(unfolding_svd)
+            u = eps_trunctation(unfolding_svd)
             factors.append(u)
-            UT.append(u.T)
-            factor_letters += f"{ascii_letters[d + i]}{ascii_letters[i]},"
+            factor_letters += f"{ascii_letters[i]}{ascii_letters[d + i]},"
             core_letters += ascii_letters[d + i]
 
         einsum_str = tensor_letters + "," + factor_letters[:-1] + "->" + core_letters
-        core = back.einsum(einsum_str, T, *UT)
+        core = back.einsum(einsum_str, T, *factors)
         return cls(core, factors)
 
     @classmethod
@@ -462,11 +455,18 @@ class Tucker:
             factors[i], intermediate_factors[i] = back.qr(self.factors[i])
 
         intermediate_tensor = Tucker(self.core, intermediate_factors)
-        intermediate_tensor = Tucker.full2tuck(intermediate_tensor.full(), max_rank, eps)
+        intermediate_tensor = Tucker.full2tuck(intermediate_tensor.full(), eps)
+        if max_rank is None:
+            max_rank = intermediate_tensor.rank
+        elif type(max_rank) is int:
+            max_rank = [max_rank] * self.ndim
         core = intermediate_tensor.core
+        rank_slices = []
         for i in range(self.ndim):
+            rank_slices.append(slice(0, max_rank[i]))
             factors[i] = factors[i] @ intermediate_tensor.factors[i]
-        return Tucker(core, factors)
+            factors[i] = factors[i][:, :max_rank[i]]
+        return Tucker(core[tuple(rank_slices)], factors)
 
     def flat_inner(self, other):
         """
