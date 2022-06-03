@@ -1,6 +1,7 @@
 import warnings
 from distutils.version import LooseVersion
 import itertools
+from opt_einsum import contract
 
 try:
     import torch
@@ -308,11 +309,15 @@ class PyTorchBackend(Backend, backend_name="pytorch"):
         res = torch.nn.functional.pad(tensor, pad_width_torch, mode=mode_torch, value=value)
         return res
 
+    @staticmethod
+    def einsum(subscripts, *operands):
+        return contract(subscripts, *operands)
+
 
 for name in ["float64", "float32", "int64", "int32", "complex128", "complex64",
              "is_tensor", "ones", "zeros", "any", "trace", "count_nonzero",
              "zeros_like", "eye", "min", "prod", "abs", "matmul",
-             "sqrt", "sign", "where", "conj", "finfo", "einsum", "log2", "sin", "cos", "squeeze"]:
+             "sqrt", "sign", "where", "conj", "finfo", "log2", "sin", "cos", "squeeze"]:
     PyTorchBackend.register_method(name, getattr(torch, name))
 
 if LooseVersion(torch.__version__) < LooseVersion("1.8.0"):
