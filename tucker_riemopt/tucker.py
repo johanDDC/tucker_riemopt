@@ -414,7 +414,15 @@ class Tucker:
                 A[[i1, i2], [j1, j2], [k1, k2]] will return 2 elements on positions (i1, j1, k1) and
                 (i2, j2, k2) correspondingly.
         """
-        raise NotImplementedError()
+        if type(key[0]) is int:
+            return back.einsum("ijk,i,j,k->", self.core, self.factors[0][key[0]],
+                               self.factors[1][key[1]], self.factors[2][key[2]])
+        else:
+            new_factors = [self.factors[i][key[:, i], :] for i in np.arange(self.ndim)]
+            tensor_letters = ascii_letters[:self.ndim]
+            einsum_rule = tensor_letters + ',' + ','.join('A' + c for c in tensor_letters) + '->A'
+
+            return back.einsum(einsum_rule, self.core, *new_factors)
 
     def round(self, max_rank: ML_rank = None, eps=1e-14):
         """
