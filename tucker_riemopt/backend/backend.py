@@ -320,3 +320,23 @@ class Backend(object):
         :return: padded tensor
         """
         raise NotImplementedError
+
+    @staticmethod
+    def cho_factor(A, upper=False, **kwargs):
+        '''
+        Performs Cholesky decomposition of matrix A.
+        :param A: Positive defined square matrix
+        :param upper: True if Cholesky factor should be upper triangular
+        :return: Cholesky decomposition of matrix (depends on backend)
+        '''
+        raise NotImplementedError
+
+    @staticmethod
+    def cho_solve(B, L, upper=False, **kwargs):
+        '''
+        Solve system of linear equations Ax=B, where A passed by its Cholesky decomposition.
+        :param B: right hand side matrix
+        :param L: Choleski factor of A
+        :return: solution of system of linear equations (depends on backend)
+        '''
+        raise NotImplementedError

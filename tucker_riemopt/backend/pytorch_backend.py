@@ -313,6 +313,14 @@ class PyTorchBackend(Backend, backend_name="pytorch"):
     def einsum(subscripts, *operands):
         return contract(subscripts, *operands)
 
+    @staticmethod
+    def cho_factor(A, upper=False, **kwargs):
+        return torch.linalg.cholesky_ex(A, upper, **kwargs)
+
+    @staticmethod
+    def cho_solve(B, L, upper=False, **kwargs):
+        return torch.cholesky_solve(B, L, upper, **kwargs)
+
 
 for name in ["float64", "float32", "int64", "int32", "complex128", "complex64",
              "is_tensor", "ones", "zeros", "any", "trace", "count_nonzero",
