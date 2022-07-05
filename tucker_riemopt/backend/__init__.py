@@ -32,7 +32,8 @@ class BackendManager(types.ModuleType):
                   "sin", "cos", "clip", "khatri_rao", "lstsq", "eps", "finfo",
                   "solve", "qr", "randn", "check_random_state", "sort", "eigh",
                   "context", "tensor", "norm", "to_numpy", "is_tensor",
-                  "argsort", "flip", "count_nonzero", "svd", "squeeze", "grad", "pad"
+                  "argsort", "flip", "count_nonzero", "svd", "squeeze", "grad", "pad",
+                  "cho_factor", "cho_solve"
                   ]
     _attributes = ["type", "int64", "int32", "float64", "float32",
                    "complex128", "complex64", "SVD_FUNS", "index", "backend_name"]

@@ -19,17 +19,20 @@ class SparseTensor:
         ----------
             shape: tuple
                 tensor shape
-            inds: tuple of integer arrays of size nnz
+            inds: matrix of size ndim x nnz
                 positions of nonzero elements
-            vals: list of size nnz
+            vals: array of size nnz
                 corresponding values
         """
 
-        assert len(inds) == len(shape) >= 1
+        assert len(inds) == len(shape)
         assert len(vals) == len(inds[0])
-        self.shape = back.to_numpy(shape)
-        self.inds = back.to_numpy(inds)
-        self.vals = back.to_numpy(vals)
+        self.shape = shape
+        self.inds = inds
+        self.vals = vals
+        self.shape_ = back.to_numpy(shape)
+        self.inds_ = back.to_numpy(inds)
+        self.vals_ = back.to_numpy(vals)
 
     @classmethod
     def dense2sparse(cls, T : back.type()):
@@ -39,7 +42,7 @@ class SparseTensor:
 
     @property
     def ndim(self):
-        return len(self.shape)
+        return len(self.shape_)
 
     @property
     def nnz(self):
@@ -55,9 +58,9 @@ class SparseTensor:
                 if i != p:
                     shape_prod = 1
                     if i != 0:
-                        shape_prod = np.prod(self.shape[:i])
+                        shape_prod = np.prod(self.shape_[:i])
                     if i > p:
-                        shape_prod //= self.shape[p]
+                        shape_prod //= self.shape_[p]
                     joined_ind += self.inds[i] * shape_prod
             return joined_ind
 
@@ -66,7 +69,7 @@ class SparseTensor:
         row = self.inds[k]
         col = multiindex(k)
         unfolding = coo_matrix((self.vals, (row, col)),
-                                    shape=(self.shape[k], np.prod(self.shape) // self.shape[k]))
+                                    shape=(self.shape_[k], np.prod(self.shape_) // self.shape_[k]))
         return unfolding.tocsr()
 
     @staticmethod
@@ -167,8 +170,8 @@ class SparseTensor:
             Converts sparse tensor to dense format.
             Be sure, that tensor can be constructed in memory in dense format.
         """
-        T = np.zeros(self.shape)
-        T[tuple(self.inds[i] for i in range(self.ndim))] = self.vals
+        T = np.zeros(self.shape_)
+        T[tuple(self.inds_[i] for i in range(self.ndim))] = self.vals_
         return back.tensor(T)
 
 
@@ -263,9 +266,9 @@ class Tucker:
         tensor_letters = ascii_letters[:d]
         factor_letters = ""
         core_letters = ""
-        for i, k in enumerate(range(d)):
-            unfolding = back.transpose(T, [modes[k], *(modes[:k] + modes[k+1:])])
-            unfolding = back.reshape(unfolding, (T.shape[k], -1), order="F")
+        for i in range(d):
+            unfolding = back.transpose(T, [modes[i], *(modes[:i] + modes[i+1:])])
+            unfolding = back.reshape(unfolding, (T.shape[i], -1), order="F")
             unfolding_svd = back.svd(unfolding, full_matrices=False)
             u = eps_trunctation(unfolding_svd)
             factors.append(u)
@@ -308,11 +311,11 @@ class Tucker:
         """
         factors = []
         contraction_dict = dict()
-        for i, k in enumerate(range(sparse_tensor.ndim)):
-            unfolding = sparse_tensor.unfolding(k)
+        for i in range(sparse_tensor.ndim):
+            unfolding = sparse_tensor.unfolding(i)
             unfolding_linop = LinearOperator(unfolding.shape, matvec=lambda x: unfolding @ x,
                                              rmatvec=lambda x: unfolding.T @ x)
-            factors.append(back.tensor(svds(unfolding_linop, max_rank[k], return_singular_vectors="u")[0]))
+            factors.append(back.tensor(svds(unfolding_linop, max_rank[i], solver="propack", return_singular_vectors="u")[0]))
             contraction_dict[i] = factors[-1].T
 
         core = sparse_tensor.contract(contraction_dict)

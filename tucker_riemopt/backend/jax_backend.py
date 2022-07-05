@@ -1,7 +1,5 @@
 try:
     import jax
-    from jax.config import config
-    config.update("jax_enable_x64", True)
     import jax.numpy as jnp
 except ImportError as error:
     message = ("Impossible to import Jax.\n"
@@ -100,6 +98,14 @@ class JaxBackend(Backend, backend_name="jax"):
     @staticmethod
     def einsum(subscripts, *operands):
         return contract(subscripts, *operands)
+
+    @staticmethod
+    def cho_factor(A, upper=False, **kwargs):
+        return jax.scipy.linalg.cho_factor(A, lower=not upper, check_finite=False, **kwargs)
+
+    @staticmethod
+    def cho_solve(B, L, upper=False, **kwargs):
+        return jax.scipy.linalg.cho_solve(L, B, check_finite=False, **kwargs)
 
 for name in ["int64", "int32", "float64", "float32", "complex128", "complex64", "reshape",
              "where", "transpose", "arange", "ones", "zeros", "flip", "trace", "any",
