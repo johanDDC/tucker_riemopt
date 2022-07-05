@@ -131,12 +131,12 @@ class SparseTuckerTest(TestCase):
         set_backend("pytorch")
         A = self.creareTestTensor()
         A = SparseTensor.dense2sparse(A)
-        A_tuck = Tucker.sparse2tuck(A, max_rank=(1, 2, 3), maxiter=None)
-        assert back.norm(A.to_dense() - A_tuck.full()) / back.norm(A.to_dense()) <= 0.71
+        A_tuck = Tucker.sparse2tuck(A, max_rank=(2, 3, 4), maxiter=None)
+        assert back.norm(A.to_dense() - A_tuck.full()) / back.norm(A.to_dense()) <= 1e-6
 
     def testHOOI(self):
         set_backend("pytorch")
         A = self.creareTestTensor()
         A = SparseTensor.dense2sparse(A)
-        A_tuck = Tucker.sparse2tuck(A, max_rank=(1, 2, 3))
-        assert back.norm(A.to_dense() - A_tuck.full()) / back.norm(A.to_dense()) <= 0.68
+        A_tuck = Tucker.sparse2tuck(A, max_rank=(2, 3, 4))
+        assert back.norm(A.to_dense() - A_tuck.full()) / back.norm(A.to_dense()) <= 1e-8
