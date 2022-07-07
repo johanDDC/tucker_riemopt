@@ -315,11 +315,11 @@ class PyTorchBackend(Backend, backend_name="pytorch"):
 
     @staticmethod
     def cho_factor(A, upper=False, **kwargs):
-        return torch.linalg.cholesky_ex(A, upper, **kwargs)
+        return torch.linalg.cholesky_ex(A, upper=upper, **kwargs)
 
     @staticmethod
     def cho_solve(B, L, upper=False, **kwargs):
-        return torch.cholesky_solve(B, L, upper, **kwargs)
+        return torch.cholesky_solve(B, L, upper=upper, **kwargs)
 
 
 for name in ["float64", "float32", "int64", "int32", "complex128", "complex64",
