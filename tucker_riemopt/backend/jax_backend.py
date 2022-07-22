@@ -101,7 +101,10 @@ class JaxBackend(Backend, backend_name="jax"):
 
     @staticmethod
     def cho_factor(A, upper=False, **kwargs):
-        return jax.scipy.linalg.cho_factor(A, lower=not upper, check_finite=False, **kwargs)
+        """
+            Additionally wraps result of jax.scipy.linalg.cho_factor in list
+        """
+        return [jax.scipy.linalg.cho_factor(A, lower=not upper, check_finite=False, **kwargs)]
 
     @staticmethod
     def cho_solve(B, L, upper=False, **kwargs):
