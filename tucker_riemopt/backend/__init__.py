@@ -214,3 +214,6 @@ BackendManager.initialize_backend()
 BackendManager.use_dynamic_dispatch()
 
 sys.modules[__name__].__class__ = BackendManager
+
+set_backend = BackendManager.set_backend
+get_backend = BackendManager.get_backend
