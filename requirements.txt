@@ -1,9 +1,8 @@
 flax==0.3.6
 jax=0.2.26
 numpy=1.21.4
-scipy=1.8.0
+scipy~=1.8.0
 opt_einsum=3.3.0
 jax~=0.2.27
 numpy~=1.22.1
 setuptools~=60.5.0
-scipy~=1.8.1
