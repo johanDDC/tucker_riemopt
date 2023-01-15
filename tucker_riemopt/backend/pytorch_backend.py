@@ -101,19 +101,18 @@ class PyTorchBackend(Backend, backend_name="pytorch"):
         return tensor.clone()
 
     @staticmethod
-    def norm(tensor, order=None, axis=None):
+    def norm(tensor, order=2, axis=None):
         kwds = {}
         if axis is not None:
             kwds["dim"] = axis
-        if order and order != "inf":
-            kwds["p"] = order
-
-        if order == "inf":
+        if order != "inf":
+            kwds["ord"] = order
+        else:
             res = torch.max(torch.abs(tensor), **kwds)
             if axis is not None:
                 return res[0]  # ignore indices output
             return res
-        return torch.norm(tensor, **kwds)
+        return torch.linalg.norm(tensor, **kwds)
 
     @staticmethod
     def dot(a, b):
@@ -206,7 +205,7 @@ class PyTorchBackend(Backend, backend_name="pytorch"):
             n = a.shape[1]
             sol = torch.lstsq(b, a)[0]
             x = sol[:n]
-            residuals = torch.norm(sol[n:], dim=0) ** 2
+            residuals = torch.linalg.norm(sol[n:], ord=2, dim=0) ** 2
             return x, residuals if torch.matrix_rank(a) == n else torch.tensor([], device=x.device)
 
     @staticmethod
