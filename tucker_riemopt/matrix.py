@@ -1,17 +1,18 @@
 from flax import struct
 from string import ascii_letters
 from copy import copy
+from dataclasses import dataclass, field
 
 from tucker_riemopt import backend as back
 from tucker_riemopt import Tucker
 
-@struct.dataclass
+@dataclass()
 class TuckerMatrix(Tucker):
-    n: back.type
-    m: back.type
+    n: back.type() = field(default_factory=back.tensor)
+    m: back.type() = field(default_factory=back.tensor)
 
     @classmethod
-    def full2tuck(cls, T : back.type, n=None, m=None, max_rank=None, eps=1e-14):
+    def full2tuck(cls, T : back.type(), n=None, m=None, max_rank=None, eps=1e-14):
         T = Tucker.full2tuck(T, eps=eps)
         T = T.round(max_rank=max_rank)
         return cls(T.core, T.factors, back.tensor(n), back.tensor(m))

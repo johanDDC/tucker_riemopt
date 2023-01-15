@@ -1,7 +1,7 @@
 import numpy as np
 
 from typing import List, Union, Sequence, Dict
-from flax import struct
+from dataclasses import dataclass, field
 from string import ascii_letters
 from copy import deepcopy
 from scipy.sparse import coo_matrix, csr_matrix
@@ -9,12 +9,15 @@ from scipy.sparse.linalg import LinearOperator, svds
 
 from tucker_riemopt import backend as back
 
+ML_rank = Union[int, Sequence[int]]
+
+
 class SparseTensor:
     """
         Contains sparse tensor in coo format. It can be constructed manually or converted from dense format.
     """
 
-    def __init__(self, shape : Sequence[int], inds : Sequence[Sequence[int]], vals : Sequence[back.float64]):
+    def __init__(self, shape: Sequence[int], inds: Sequence[Sequence[int]], vals: Sequence[back.float64]):
         """
         Parameters
         ----------
@@ -36,7 +39,7 @@ class SparseTensor:
         self.vals_ = back.to_numpy(vals)
 
     @classmethod
-    def dense2sparse(cls, T : back.type()):
+    def dense2sparse(cls, T: back.type()):
         inds = [np.arange(mode, dtype=int) for mode in T.shape]
         grid_inds = tuple(I.flatten(order="F") for I in np.meshgrid(*inds, indexing="ij"))
         return cls(T.shape, grid_inds, back.reshape(T, (-1,), order="F"))
@@ -70,20 +73,21 @@ class SparseTensor:
         row = self.inds[k]
         col = multiindex(k)
         unfolding = coo_matrix((self.vals, (row, col)),
-                                    shape=(self.shape_[k], np.prod(self.shape_) // self.shape_[k]))
+                               shape=(self.shape_[k], np.prod(self.shape_) // self.shape_[k]))
         return unfolding.tocsr()
 
     @staticmethod
-    def __unfolding_to_tensor(unfolding : csr_matrix, k : int, shape : Sequence[int]):
+    def __unfolding_to_tensor(unfolding: csr_matrix, k: int, shape: Sequence[int]):
         """
             Converts k-unfolding matrix back to sparse tensor.
         """
+
         def detach_multiindex(p, multiindex):
             """
                 Performs detaching of multiindex back to tuple of indices. Excepts p-mode.
             """
             inds = []
-            dynamic = np.zeros_like(multiindex[1]) # use dynamic programming to prevent d**2 complexity
+            dynamic = np.zeros_like(multiindex[1])  # use dynamic programming to prevent d**2 complexity
             shape_prod = np.prod(shape) // shape[p]
             # shape_prod //= shape[-2] if p == len(shape) - 1 else shape[-1]
             for i in range(len(shape) - 1, -1, -1):
@@ -99,8 +103,8 @@ class SparseTensor:
         vals = unfolding.data
         inds = detach_multiindex(k, (unfolding.row, unfolding.col))
         return SparseTensor(shape, inds, vals)
-    
-    def reshape(self, new_shape : Sequence[Sequence[int]]):
+
+    def reshape(self, new_shape: Sequence[Sequence[int]]):
         """
             Reshape sparse tensor.
 
@@ -111,6 +115,7 @@ class SparseTensor:
                  each of its element had 3 indices (i, j, k). Now we want to reshape it to tensor of order 5 of shape
                  (64, 8, 64, 8, 3). Then `new_shape` parameter will look like [[64, 8], [64, 8], [3]].
         """
+
         def detach_multiindex(multiindex, shape):
             """
                 Performs detaching of multiindex back to tuple of indices. Excepts p-mode.
@@ -134,8 +139,7 @@ class SparseTensor:
 
         return SparseTensor(shape_new, new_inds, back.copy(self.vals))
 
-
-    def contract(self, contraction_dict : Dict[int, back.type()]):
+    def contract(self, contraction_dict: Dict[int, back.type()]):
         """
             Performs tensor contraction.
 
@@ -148,7 +152,8 @@ class SparseTensor:
             -------
             SparseTensor : result of contranction
         """
-        def contract_by_mode(T : SparseTensor, k: int, M : back.type()):
+
+        def contract_by_mode(T: SparseTensor, k: int, M: back.type()):
             """
                 Performs tensor contraction by specified mode using the following property:
                 {<A, M>_k}_(k) = M @ A_(k)
@@ -176,12 +181,10 @@ class SparseTensor:
         return back.tensor(T)
 
 
-ML_rank = Union[int, Sequence[int]]
-
-@struct.dataclass
+@dataclass()
 class Tucker:
-    core: back.type()
-    factors: List[back.type()]
+    core: back.type() = field(default_factory=back.tensor)
+    factors: List[back.type()] = field(default_factory=list)
 
     @staticmethod
     def __HOOI(sparse_tensor, sparse_tucker, contraction_dict, maxiter):
@@ -204,9 +207,8 @@ class Tucker:
                         factor = back.svd(W_unfolding, full_matrices=False)[0]
                 else:
                     W_unfolding_linop = LinearOperator(W_unfolding.shape, matvec=lambda x: W_unfolding @ x,
-                                               rmatvec=lambda x: W_unfolding.T @ x)
+                                                       rmatvec=lambda x: W_unfolding.T @ x)
                     factor = back.tensor(svds(W_unfolding_linop, r_k, return_singular_vectors="u")[0])
-
 
                 contraction_dict[k] = factor.T
                 sparse_tucker.factors[k] = factor
@@ -219,7 +221,7 @@ class Tucker:
         return sparse_tucker
 
     @classmethod
-    def full2tuck(cls, T : back.type(), eps=1e-14):
+    def full2tuck(cls, T: back.type(), eps=1e-14):
         """
             Convert full tensor T to Tucker by applying HOSVD algorithm.
 
@@ -268,7 +270,7 @@ class Tucker:
         factor_letters = ""
         core_letters = ""
         for i in range(d):
-            unfolding = back.transpose(T, [modes[i], *(modes[:i] + modes[i+1:])])
+            unfolding = back.transpose(T, [modes[i], *(modes[:i] + modes[i + 1:])])
             unfolding = back.reshape(unfolding, (T.shape[i], -1), order="F")
             unfolding_svd = back.svd(unfolding, full_matrices=False)
             u = eps_trunctation(unfolding_svd)
@@ -281,7 +283,7 @@ class Tucker:
         return cls(core, factors)
 
     @classmethod
-    def sparse2tuck(cls, sparse_tensor : SparseTensor, max_rank: ML_rank=None, maxiter: Union[int, None]=5):
+    def sparse2tuck(cls, sparse_tensor: SparseTensor, max_rank: ML_rank = None, maxiter: Union[int, None] = 5):
         """
             Gains sparse tensor and constructs its Sparse Tucker decomposition.
 
@@ -316,7 +318,8 @@ class Tucker:
             unfolding = sparse_tensor.unfolding(i)
             unfolding_linop = LinearOperator(unfolding.shape, matvec=lambda x: unfolding @ x,
                                              rmatvec=lambda x: unfolding.T @ x)
-            factors.append(back.tensor(svds(unfolding_linop, max_rank[i], solver="propack", return_singular_vectors="u")[0]))
+            factors.append(
+                back.tensor(svds(unfolding_linop, max_rank[i], solver="propack", return_singular_vectors="u")[0]))
             contraction_dict[i] = factors[-1].T
 
         core = sparse_tensor.contract(contraction_dict)
@@ -365,8 +368,10 @@ class Tucker:
         factors = []
         r1 = self.rank
         r2 = other.rank
-        padded_core1 = back.pad(self.core, [(0, r2[j]) if j > 0 else (0, 0) for j in range(self.ndim)], mode="constant", constant_values=0)
-        padded_core2 = back.pad(other.core, [(r1[j], 0) if j > 0 else (0, 0) for j in range(other.ndim)], mode="constant", constant_values=0)
+        padded_core1 = back.pad(self.core, [(0, r2[j]) if j > 0 else (0, 0) for j in range(self.ndim)],
+                                mode="constant", constant_values=0)
+        padded_core2 = back.pad(other.core, [(r1[j], 0) if j > 0 else (0, 0) for j in range(other.ndim)],
+                                mode="constant", constant_values=0)
         core = back.concatenate((padded_core1, padded_core2), axis=0)
         for i in range(self.ndim):
             factors.append(back.concatenate((self.factors[i], other.factors[i]), axis=1))
@@ -380,7 +385,7 @@ class Tucker:
         core = back.kron(self.core, other.core)
         factors = []
         for i in range(self.ndim):
-            factors.append(back.einsum('ia,ib->iab', self.factors[i], other.factors[i])\
+            factors.append(back.einsum('ia,ib->iab', self.factors[i], other.factors[i]) \
                            .reshape(self.factors[i].shape[0], -1))
 
         return Tucker(core, factors)
@@ -483,7 +488,7 @@ class Tucker:
         inds = ascii_letters[:self.ndim]
         return back.squeeze(back.einsum(f"{inds},{inds}->", new_tensor.full(), other.core))
 
-    def k_mode_product(self, k:int, mat: back.type()):
+    def k_mode_product(self, k: int, mat: back.type()):
         """
         K-mode tensor-matrix product.
 
@@ -500,7 +505,7 @@ class Tucker:
         new_tensor.factors[k] = mat @ new_tensor.factors[k]
         return new_tensor
 
-    def norm(self, qr_based:bool =False):
+    def norm(self, qr_based: bool = False):
         """
         Frobenius norm of `Tucker`.
 
@@ -545,5 +550,6 @@ class Tucker:
         new_core = back.copy(self.core)
         new_factors = [back.copy(factor) for factor in self.factors]
         return self.__class__(new_core, new_factors)
+
 
 TangentVector = Tucker
