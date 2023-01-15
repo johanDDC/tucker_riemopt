@@ -1,5 +1,6 @@
-from typing import List, Union, Sequence, Dict
 import numpy as np
+
+from typing import List, Union, Sequence, Dict
 from flax import struct
 from string import ascii_letters
 from copy import deepcopy

@@ -1,8 +1,7 @@
 import warnings
-from distutils.version import LooseVersion
 import itertools
-from opt_einsum import contract
-
+import numpy as np
+import typing
 try:
     import torch
 except ImportError as error:
@@ -11,8 +10,9 @@ except ImportError as error:
                "you must first install PyTorch!")
     raise ImportError(message) from error
 
-import numpy as np
-import typing
+from opt_einsum import contract
+from distutils.version import LooseVersion
+
 from .backend import Backend
 
 linalg_lstsq_avail = LooseVersion(torch.__version__) >= LooseVersion("1.9.0")

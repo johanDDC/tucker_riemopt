@@ -1,5 +1,6 @@
-from unittest import TestCase
 import numpy as np
+
+from unittest import TestCase
 
 from tucker_riemopt import backend as back
 from tucker_riemopt import Tucker
