@@ -10,6 +10,7 @@ except ImportError as error:
 import numpy
 import copy
 import typing
+
 from opt_einsum import contract
 
 from .backend import Backend

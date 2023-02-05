@@ -1,4 +1,5 @@
 import numpy as np
+
 from typing import Callable
 from collections import defaultdict
 from copy import copy

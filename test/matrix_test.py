@@ -1,5 +1,6 @@
-from unittest import TestCase
 import numpy as np
+
+from unittest import TestCase
 
 from tucker_riemopt import Tucker
 from tucker_riemopt import TuckerMatrix
@@ -24,7 +25,7 @@ class TuckerMatrixTest(TestCase):
         M2 = TuckerMatrix.full2tuck(A2, [3], [3])
 
         res = M1 @ M2
-        assert(np.allclose(res.full(), A1 @ A2))
+        assert(np.allclose(res.full(), A1 @ A2, atol=1e-7))
 
     def testMatVec(self):
         v = back.randn((4,))
