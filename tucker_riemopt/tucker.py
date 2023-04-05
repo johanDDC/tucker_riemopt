@@ -7,6 +7,7 @@ from copy import deepcopy
 from scipy.sparse.linalg import LinearOperator, svds
 
 from tucker_riemopt import backend as back
+from tucker_riemopt.sparse import SparseTensor
 
 ML_rank = Union[int, Sequence[int]]
 
