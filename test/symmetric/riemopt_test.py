@@ -2,13 +2,12 @@ import numpy as np
 
 from unittest import TestCase
 
-from tucker_riemopt import backend as back, set_backend
-from tucker_riemopt import Tucker
-from tucker_riemopt.riemopt import compute_gradient_projection
+from tucker_riemopt import backend as back
+from tucker_riemopt.symmetric.tucker import Tucker
+from tucker_riemopt.symmetric.riemopt import compute_gradient_projection
 
 
 class RiemoptTest(TestCase):
-
     def createTestTensor(self, n=4):
         """
             A = [G; U, V, V], V = ones(n x n)
@@ -20,10 +19,9 @@ class RiemoptTest(TestCase):
         symmetric_factor = back.qr(symmetric_factor)[0]
         symmetric_modes = [1, 2]
         core = back.tensor(np.random.randn(n, n, n))
-        return Tucker(core, [common_factor, symmetric_factor, symmetric_factor])
+        return Tucker(core, [common_factor], symmetric_modes, symmetric_factor)
 
     def testGradProjection(self):
-        set_backend("pytorch")
         np.random.seed(229)
 
         def f_full(A):
@@ -41,5 +39,3 @@ class RiemoptTest(TestCase):
         riem_grad = compute_gradient_projection(f, T)
 
         assert(np.allclose(back.to_numpy(eucl_grad), back.to_numpy(riem_grad.full()), atol=1e-5))
-
-
