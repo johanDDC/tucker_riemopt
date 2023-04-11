@@ -7,6 +7,7 @@ from copy import deepcopy
 from scipy.sparse.linalg import LinearOperator, svds
 
 from tucker_riemopt import backend as back
+from tucker_riemopt.sparse import SparseTensor
 
 ML_rank = Union[int, Sequence[int]]
 
@@ -317,12 +318,14 @@ class Tucker:
         factors_letters = []
         transposed_letters = []
         intermediate_core_letters = []
-        for i in range(self.ndim):
-            factors.append(self.factors[i])
-            factors_letters.append(ascii_letters[self.ndim + i] + core_letters[i])
-            transposed_factors.append(other.factors[i].T)
-            transposed_letters.append(ascii_letters[self.ndim + 2 * i] + ascii_letters[self.ndim + i])
-            intermediate_core_letters.append(ascii_letters[self.ndim + 2 * i])
+        rev_letters = ascii_letters[self.ndim:][::-1]
+        for i in range(1, self.ndim + 1):
+            j = i - 1
+            factors.append(self.factors[j])
+            factors_letters.append(ascii_letters[self.ndim + i] + core_letters[j])
+            transposed_factors.append(other.factors[j].T)
+            transposed_letters.append(rev_letters[i] + ascii_letters[self.ndim + i])
+            intermediate_core_letters.append(rev_letters[i])
 
         source = ",".join([core_letters] + factors_letters + transposed_letters)
         intermediate_core = back.einsum(source + "->" + "".join(intermediate_core_letters),
