@@ -126,17 +126,19 @@ class Tucker:
         intermediate_core_letters = []
         symmetric_factor = other.symmetric_factor.T @ self.symmetric_factor
         cur_common_mode = 0
-        for i in range(self.ndim):
-            if i in self.symmetric_modes:
+        rev_letters = ascii_letters[self.ndim:][::-1]
+        for i in range(1, self.ndim + 1):
+            j = i - 1
+            if j in self.symmetric_modes:
                 factors.append(symmetric_factor)
-                factors_letters.append(ascii_letters[self.ndim + i] + core_letters[i])
+                factors_letters.append(ascii_letters[self.ndim + i] + core_letters[j])
                 intermediate_core_letters.append(ascii_letters[self.ndim + i])
             else:
                 factors.append(self.common_factors[cur_common_mode])
-                factors_letters.append(ascii_letters[self.ndim + i] + core_letters[i])
+                factors_letters.append(ascii_letters[self.ndim + i] + core_letters[j])
                 transposed_factors.append(other.common_factors[cur_common_mode].T)
-                transposed_letters.append(ascii_letters[self.ndim + 2 * i] + ascii_letters[self.ndim + i])
-                intermediate_core_letters.append(ascii_letters[self.ndim + 2 * i])
+                transposed_letters.append(rev_letters[j] + ascii_letters[self.ndim + i])
+                intermediate_core_letters.append(rev_letters[j])
                 cur_common_mode += 1
 
         source = ",".join([core_letters] + factors_letters + transposed_letters)
