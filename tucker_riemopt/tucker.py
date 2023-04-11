@@ -312,12 +312,23 @@ class Tucker:
         """
             Calculate inner product of given `Tucker` tensors.
         """
-        new_tensor = deepcopy(self)
+        factors = []
+        transposed_factors = []
+        core_letters = ascii_letters[:self.ndim]
+        factors_letters = []
+        transposed_letters = []
+        intermediate_core_letters = []
         for i in range(self.ndim):
-            new_tensor.factors[i] = other.factors[i].T @ new_tensor.factors[i]
+            factors.append(self.factors[i])
+            factors_letters.append(ascii_letters[self.ndim + i] + core_letters[i])
+            transposed_factors.append(other.factors[i].T)
+            transposed_letters.append(ascii_letters[self.ndim + 2 * i] + ascii_letters[self.ndim + i])
+            intermediate_core_letters.append(ascii_letters[self.ndim + 2 * i])
 
-        inds = ascii_letters[:self.ndim]
-        return back.squeeze(back.einsum(f"{inds},{inds}->", new_tensor.full(), other.core))
+        source = ",".join([core_letters] + factors_letters + transposed_letters)
+        intermediate_core = back.einsum(source + "->" + "".join(intermediate_core_letters),
+                                        self.core, *factors, *transposed_factors)
+        return (intermediate_core * other.core).sum()
 
     def k_mode_product(self, k: int, mat: back.type()):
         """
