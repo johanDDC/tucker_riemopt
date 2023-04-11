@@ -2,9 +2,10 @@ import numpy as np
 
 from unittest import TestCase
 
-from tucker_riemopt import Tucker, SparseTensor
+from tucker_riemopt import Tucker
 from tucker_riemopt import backend as back
 from tucker_riemopt import set_backend
+from tucker_riemopt.sparse import SparseTensor
 
 
 class TuckerTensorTest(TestCase):
