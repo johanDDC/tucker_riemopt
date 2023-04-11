@@ -310,7 +310,7 @@ class PyTorchBackend(Backend, backend_name="pytorch"):
 
     @staticmethod
     def einsum(subscripts, *operands):
-        return contract(subscripts, *operands)
+        return contract(subscripts, *operands, backend="torch")
 
     @staticmethod
     def cho_factor(A, upper=False, **kwargs):
