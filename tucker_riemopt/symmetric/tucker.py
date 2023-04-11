@@ -118,13 +118,31 @@ class Tucker:
         """
         if self.symmetric_modes != other.symmetric_modes:
             return self.to_regular_tucker() + other.to_regular_tucker()
-        new_tensor = deepcopy(self)
-        for i in range(len(self.common_factors)):
-            new_tensor.common_factors[i] = other.common_factors[i].T @ new_tensor.common_factors[i]
-        new_tensor.symmetric_factor = other.symmetric_factor.T @ new_tensor.symmetric_factor
+        factors = []
+        transposed_factors = []
+        core_letters = ascii_letters[:self.ndim]
+        factors_letters = []
+        transposed_letters = []
+        intermediate_core_letters = []
+        symmetric_factor = other.symmetric_factor.T @ self.symmetric_factor
+        cur_common_mode = 0
+        for i in range(self.ndim):
+            if i in self.symmetric_modes:
+                factors.append(symmetric_factor)
+                factors_letters.append(ascii_letters[self.ndim + i] + core_letters[i])
+                intermediate_core_letters.append(ascii_letters[self.ndim + i])
+            else:
+                factors.append(self.common_factors[cur_common_mode])
+                factors_letters.append(ascii_letters[self.ndim + i] + core_letters[i])
+                transposed_factors.append(other.common_factors[cur_common_mode].T)
+                transposed_letters.append(ascii_letters[self.ndim + 2 * i] + ascii_letters[self.ndim + i])
+                intermediate_core_letters.append(ascii_letters[self.ndim + 2 * i])
+                cur_common_mode += 1
 
-        inds = ascii_letters[:self.ndim]
-        return back.squeeze(back.einsum(f"{inds},{inds}->", new_tensor.full(), other.core))
+        source = ",".join([core_letters] + factors_letters + transposed_letters)
+        intermediate_core = back.einsum(source + "->" + "".join(intermediate_core_letters),
+                                        self.core, *factors, *transposed_factors)
+        return (intermediate_core * other.core).sum()
 
     def k_mode_product(self, k: int, mat: back.type()):
         """
