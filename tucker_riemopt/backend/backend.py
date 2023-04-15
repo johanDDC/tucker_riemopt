@@ -340,3 +340,13 @@ class Backend(object):
         :return: solution of system of linear equations (depends on backend)
         '''
         raise NotImplementedError
+
+    @staticmethod
+    def lu_factor(A, pivot=True):
+        ''''''
+        raise NotImplementedError
+
+    @staticmethod
+    def lu_solve(lu_pivots, B, left=True):
+        ''''''
+        raise NotImplementedError
