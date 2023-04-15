@@ -111,6 +111,15 @@ class JaxBackend(Backend, backend_name="jax"):
     def cho_solve(B, L, upper=False, **kwargs):
         return jax.scipy.linalg.cho_solve(L, B, check_finite=False, **kwargs)
 
+    @staticmethod
+    def lu_factor(A, pivot=True):
+        return jax.scipy.linalg.lu_factor(A)
+
+    @staticmethod
+    def lu_solve(lu_pivots, B, left=True):
+        return jax.scipy.linalg.lu_solve(lu_pivots, B)
+
+
 for name in ["int64", "int32", "float64", "float32", "complex128", "complex64", "reshape",
              "where", "transpose", "arange", "ones", "zeros", "flip", "trace", "any",
              "zeros_like", "eye", "kron", "concatenate", "max", "min", "matmul",

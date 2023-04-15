@@ -48,8 +48,8 @@ def compute_gradient_projection(func, T, retain_graph=False):
         unfolding_core = back.transpose(T.core, [modes[i], *(modes[:i] + modes[i + 1:])])
         unfolding_core = back.reshape(unfolding_core, (T.core.shape[i], -1), order="F")
         gram_core = unfolding_core @ unfolding_core.T
-        L = back.cho_factor(gram_core)
-        dU[i] = back.cho_solve(dU[i].T, L[0]).T
+        L = back.lu_factor(gram_core)
+        dU[i] = back.lu_solve(L, dU[i].T).T
 
     return Tucker(group_cores(dS, T.core), [back.concatenate([T.factors[i], dU[i]], axis=1) for i in range(T.ndim)])
 
