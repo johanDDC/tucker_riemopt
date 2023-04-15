@@ -322,10 +322,10 @@ class PyTorchBackend(Backend, backend_name="pytorch"):
 
     @staticmethod
     def lu_factor(A, pivot=True):
-        if A.device.device_type == "cuda":
+        if A.device.type == "cuda":
             lu, pivot, _ = torch.linalg.lu_factor_ex(A, pivot)
         else:
-            lu, pivot = torch.linalg.lu_factor(A, pivot)
+            lu, pivot = torch.linalg.lu_factor(A)
         return lu, pivot
 
     @staticmethod
