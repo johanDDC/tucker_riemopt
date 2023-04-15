@@ -199,18 +199,9 @@ class Backend(object):
     def sqrt(tensor):
         raise NotImplementedError
 
-    def norm(self, tensor, order=2, axis=None):
-        if axis == ():
-            axis = None
-
-        if order == "inf":
-            return self.max(self.abs(tensor), axis=axis)
-        if order == 1:
-            return self.sum(self.abs(tensor), axis=axis)
-        elif order == 2:
-            return self.sqrt(self.sum(self.abs(tensor) ** 2, axis=axis))
-        else:
-            return self.sum(self.abs(tensor) ** order, axis=axis) ** (1 / order)
+    @staticmethod
+    def norm(tensor, ord=None, axis=None):
+        raise NotImplementedError
 
     @staticmethod
     def dot(a, b):

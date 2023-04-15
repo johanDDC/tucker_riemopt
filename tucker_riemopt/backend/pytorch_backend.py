@@ -101,18 +101,8 @@ class PyTorchBackend(Backend, backend_name="pytorch"):
         return tensor.clone()
 
     @staticmethod
-    def norm(tensor, order=2, axis=None):
-        kwds = {}
-        if axis is not None:
-            kwds["dim"] = axis
-        if order != "inf":
-            kwds["ord"] = order
-        else:
-            res = torch.max(torch.abs(tensor), **kwds)
-            if axis is not None:
-                return res[0]  # ignore indices output
-            return res
-        return torch.linalg.norm(tensor, **kwds)
+    def norm(tensor, ord=None, axis=None):
+        return torch.linalg.norm(tensor, ord=ord, dim=axis)
 
     @staticmethod
     def dot(a, b):
@@ -323,7 +313,7 @@ class PyTorchBackend(Backend, backend_name="pytorch"):
     @staticmethod
     def lu_factor(A, pivot=True):
         if A.device.type == "cuda":
-            lu, pivot, _ = torch.linalg.lu_factor_ex(A, pivot)
+            lu, pivot, _ = torch.linalg.lu_factor_ex(A)
         else:
             lu, pivot = torch.linalg.lu_factor(A)
         return lu, pivot

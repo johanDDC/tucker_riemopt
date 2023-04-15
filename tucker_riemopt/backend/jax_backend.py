@@ -50,6 +50,10 @@ class JaxBackend(Backend, backend_name="jax"):
         return tensor.ndim
 
     @staticmethod
+    def norm(tensor, ord=None, axis=None):
+        return jnp.linalg.norm(tensor, ord=ord, axis=axis)
+
+    @staticmethod
     def dot(a, b):
         return a.dot(b)
 
