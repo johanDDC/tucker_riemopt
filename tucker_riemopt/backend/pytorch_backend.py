@@ -320,6 +320,18 @@ class PyTorchBackend(Backend, backend_name="pytorch"):
     def cho_solve(B, L, upper=False, **kwargs):
         return torch.cholesky_solve(B, L, upper=upper, **kwargs)
 
+    @staticmethod
+    def lu_factor(A, pivot=True):
+        if A.device.device_type == "cuda":
+            lu, pivot, _ = torch.linalg.lu_factor_ex(A, pivot)
+        else:
+            lu, pivot = torch.linalg.lu_factor(A, pivot)
+        return lu, pivot
+
+    @staticmethod
+    def lu_solve(lu_pivots, B, left=True):
+        return torch.linalg.lu_solve(lu_pivots[0], lu_pivots[1], B, left=left)
+
 
 for name in ["float64", "float32", "int64", "int32", "complex128", "complex64",
              "is_tensor", "ones", "zeros", "any", "trace", "count_nonzero",
