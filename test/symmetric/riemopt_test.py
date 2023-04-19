@@ -36,6 +36,6 @@ class RiemoptTest(TestCase):
         T = self.createTestTensor(4)
 
         eucl_grad = full_grad(T.full())
-        riem_grad = compute_gradient_projection(f, T)
+        riem_grad, _ = compute_gradient_projection(f, T)
 
         assert(np.allclose(back.to_numpy(eucl_grad), back.to_numpy(riem_grad.full()), atol=1e-5))
