@@ -30,6 +30,7 @@ def compute_gradient_projection(func, T, retain_graph=False):
 
      Output
         proj: projections of gradient onto the tangent space
+        fx: func(T)
     """
     fx = None
 

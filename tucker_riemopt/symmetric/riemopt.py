@@ -32,7 +32,8 @@ def compute_gradient_projection(func, T, retain_graph=False):
             (may be significant for some backgrounds like PyTorch)
 
      Output
-        proj: projections of gradient onto the tangent space
+        proj: projections of gradient onto the tangent space,
+        fx: func(T)
     """
     fx = None
 
