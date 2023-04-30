@@ -15,9 +15,8 @@ class TuckerTensorTest(TestCase):
         common_factor = np.random.randn(n, n)
         common_factor = back.tensor(common_factor)
         symmetric_factor = back.ones((n, n))
-        symmetric_modes = [1, 2]
         core = np.random.randn(n, n, n)
-        return Tucker(core, [common_factor], symmetric_modes, symmetric_factor)
+        return Tucker(core, [common_factor], 2, symmetric_factor)
 
     def testAdd(self):
         A = self.createTestTensor(self.n)
