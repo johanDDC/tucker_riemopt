@@ -123,7 +123,7 @@ class Tucker:
         rev_letters = ascii_letters[self.ndim:][::-1]
         for i in range(1, self.ndim + 1):
             j = i - 1
-            if j < self.ndim - self.num_symmetric_modes - 1: # FIXME -1
+            if j < self.ndim - self.num_symmetric_modes:
                 factors.append(self.common_factors[j])
                 factors_letters.append(ascii_letters[self.ndim + i] + core_letters[j])
                 transposed_factors.append(other.common_factors[j].T)
@@ -152,7 +152,7 @@ class Tucker:
         """
         if k < 0 or k >= self.ndim:
             raise ValueError(f"k shoduld be from 0 to {self.ndim - 1}")
-        if k >= self.ndim - self.num_symmetric_modes - 1: # FIXME -1
+        if k >= self.ndim - self.num_symmetric_modes:
             return self.to_regular_tucker().k_mode_product(k, mat)
         new_tensor = deepcopy(self)
         new_tensor.common_factors[k] = mat @ new_tensor.common_factors[k]
@@ -202,11 +202,15 @@ class Tucker:
         tensor_letters = ""
         factors = []
         curr_common_factor = 0
-        for i in range(self.ndim - self.num_symmetric_modes):
-            factor_letters += f"{ascii_letters[self.ndim + i]}{ascii_letters[i]},"
-            tensor_letters += ascii_letters[self.ndim + i]
-            factors.append(self.common_factors[i])
-        factors += [self.symmetric_factor for _ in range(self.num_symmetric_modes)]
+        for i in range(self.ndim):
+            if i < self.ndim - self.num_symmetric_modes:
+                factor_letters += f"{ascii_letters[self.ndim + i]}{ascii_letters[i]},"
+                tensor_letters += ascii_letters[self.ndim + i]
+                factors.append(self.common_factors[i])
+            else:
+                factors.append(self.symmetric_factor)
+                factor_letters += f"{ascii_letters[self.ndim + i]}{ascii_letters[i]},"
+                tensor_letters += ascii_letters[self.ndim + i]
         einsum_str = core_letters + "," + factor_letters[:-1] + "->" + tensor_letters
         return back.einsum(einsum_str, self.core, *factors)
 
