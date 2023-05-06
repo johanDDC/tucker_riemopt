@@ -107,6 +107,47 @@ class Tucker:
         other = -other
         return self + other
 
+    def round(self, max_rank: ML_rank = None, eps=1e-14):
+        if eps < 0:
+            raise ValueError("eps should be greater or equal than 0")
+        if max_rank is None:
+            max_rank = self.rank
+        elif type(max_rank) is int:
+            max_rank = [max_rank] * self.ndim
+
+        factors = [None] * (self.ndim - self.num_symmetric_modes + 1)
+        intermediate_factors = [None] * (self.ndim - self.num_symmetric_modes + 1)
+        for i in range(self.ndim - self.num_symmetric_modes):
+            factors[i], intermediate_factors[i] = back.qr(self.common_factors[i])
+        factors[-1], intermediate_factors[-1] = back.qr(self.symmetric_factor)
+
+        intermediate_tensor = Tucker(self.core, intermediate_factors[:-1],
+                                     self.num_symmetric_modes, intermediate_factors[-1]).full()
+        modes = list(np.arange(0, self.ndim))
+        for i in range(self.ndim - self.num_symmetric_modes):
+            unfolding = back.transpose(intermediate_tensor, [modes[i], *(modes[:i] + modes[i + 1:])])
+            unfolding = back.reshape(unfolding, (intermediate_tensor.shape[i], -1), order="F")
+            u, _, _ = back.svd(unfolding, full_matrices=False)
+            u = u[:, :max_rank[i]]
+            factors[i] @= u
+        core_concat = None
+        for i in range(self.num_symmetric_modes):
+            j = len(self.common_factors) + i
+            unfolding = back.transpose(intermediate_tensor, [modes[j], *(modes[:j] + modes[j + 1:])])
+            unfolding = back.reshape(unfolding, (intermediate_tensor.shape[j], -1), order="F")
+            if core_concat is None:
+                core_concat = unfolding
+            else:
+                core_concat = back.concatenate([core_concat, unfolding], axis=1)
+        u, _, _ = back.svd(core_concat, full_matrices=False)
+        u = u[:, :max_rank[-1]]
+        factors[-1] @= u
+        core = self
+        for i in range(self.ndim - self.num_symmetric_modes):
+            core = core.k_mode_product(i, factors[i].T)
+        core = core.symmetric_modes_product(factors[-1].T).full()
+        return Tucker(core, factors[:-1], self.num_symmetric_modes, factors[-1])
+
     def flat_inner(self, other):
         """
             Calculate inner product of given `Tucker` tensors.
