@@ -4,10 +4,10 @@ from unittest import TestCase
 
 from tucker_riemopt import backend as back, set_backend
 from tucker_riemopt import Tucker
-from tucker_riemopt.riemopt import compute_gradient_projection
+from tucker_riemopt.tucker.riemannian import grad
 
 
-class RiemoptTest(TestCase):
+class RiemannianTest(TestCase):
 
     def createTestTensor(self, n=4):
         """
@@ -18,7 +18,6 @@ class RiemoptTest(TestCase):
         common_factor = back.qr(common_factor)[0]
         symmetric_factor = back.tensor(np.random.randn(n, n))
         symmetric_factor = back.qr(symmetric_factor)[0]
-        symmetric_modes = [1, 2]
         core = back.tensor(np.random.randn(n, n, n))
         return Tucker(core, [common_factor, symmetric_factor, symmetric_factor])
 
@@ -30,16 +29,17 @@ class RiemoptTest(TestCase):
             return (A ** 2 - A).sum()
 
         def f(T: Tucker):
-            A = T.full()
+            A = T.to_dense()
             return (A ** 2 - A).sum()
 
         full_grad = back.grad(f_full, argnums=0)
 
         T = self.createTestTensor(4)
 
-        eucl_grad = full_grad(T.full())
-        riem_grad, _ = compute_gradient_projection(f, T)
+        eucl_grad = full_grad(T.to_dense())
+        riem_grad, _ = grad(f, T)
+        riem_grad = riem_grad.construct()
 
-        assert(np.allclose(back.to_numpy(eucl_grad), back.to_numpy(riem_grad.full()), atol=1e-5))
+        assert(np.allclose(back.to_numpy(eucl_grad), back.to_numpy(riem_grad.to_dense()), atol=1e-5))
 
 
