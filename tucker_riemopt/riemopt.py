@@ -30,14 +30,17 @@ def compute_gradient_projection(func, T, retain_graph=False):
 
      Output
         proj: projections of gradient onto the tangent space
+        fx: func(T)
     """
+    fx = None
 
     def g(core, factors):
-        nonlocal T
+        nonlocal T, fx
         new_factors = [back.concatenate([T.factors[i], factors[i]], axis=1) for i in range(T.ndim)]
         new_core = group_cores(core, T.core)
         X = Tucker(new_core, new_factors)
-        return func(X)
+        fx = func(X)
+        return fx
 
     dg = back.grad(g, [0, 1], retain_graph=retain_graph)
 
@@ -51,7 +54,7 @@ def compute_gradient_projection(func, T, retain_graph=False):
         L = back.lu_factor(gram_core)
         dU[i] = back.lu_solve(L, dU[i].T).T
 
-    return Tucker(group_cores(dS, T.core), [back.concatenate([T.factors[i], dU[i]], axis=1) for i in range(T.ndim)])
+    return Tucker(group_cores(dS, T.core), [back.concatenate([T.factors[i], dU[i]], axis=1) for i in range(T.ndim)]), fx
 
 def vector_transport(x: Tucker, y: Tucker, xi: Tucker, retain_graph=False):
     """
