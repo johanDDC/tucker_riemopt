@@ -24,22 +24,21 @@ class TuckerTensorTest(TestCase):
 
     def testFull2Tuck(self):
         A = self.createTestTensor(self.n)
-        A_tuck = Tucker.full2tuck(A, eps=1e-6)
-        assert np.allclose(A, A_tuck.full())
+        A_tuck = Tucker.from_dense(A, eps=1e-6)
+        assert np.allclose(A, A_tuck.to_dense())
 
     def testAdd(self):
         A = self.createTestTensor(self.n)
-        A = Tucker.full2tuck(A, eps=1e-6)
+        A = Tucker.from_dense(A, eps=1e-6)
         A2 = A + A
         self.assertEqual(A2.rank, (4, 4, 4))
         A2 = A2.round(A.rank)
         self.assertEqual(A2.rank, (2, 2, 2))
-        assert np.allclose((2 * A).full(), A2.full())
+        assert np.allclose((2 * A).to_dense(), A2.to_dense())
 
     def testMul(self):
         A = self.createTestTensor(self.n)
-        A_tuck = Tucker.full2tuck(A, eps=1e-6)
-        A_rank = A_tuck.rank
+        A_tuck = Tucker.from_dense(A, eps=1e-6)
         self.assertEqual(A_tuck.rank, (2, 2, 2))
         A_tuck = A_tuck * A_tuck
         self.assertEqual(A_tuck.rank, (4, 4, 4))
@@ -48,18 +47,18 @@ class TuckerTensorTest(TestCase):
 
     def testNorm(self):
         A = self.createTestTensor(self.n)
-        A_tuck = Tucker.full2tuck(A, eps=1e-6)
+        A_tuck = Tucker.from_dense(A, eps=1e-6)
         assert np.allclose(A_tuck.norm(qr_based=False), back.norm(A))
         assert np.allclose(A_tuck.norm(qr_based=True), back.norm(A))
 
     def testModeProd(self):
         A = self.createTestTensor(self.n)
         Z = back.zeros((self.n, self.n, self.n))
-        A_tuck = Tucker.full2tuck(A, eps=1e-6)
+        A_tuck = Tucker.from_dense(A, eps=1e-6)
         M = back.zeros((self.n, self.n), dtype=A.dtype)
-        assert np.allclose(A_tuck.k_mode_product(0, M).full(), Z)
-        assert np.allclose(A_tuck.k_mode_product(1, M).full(), Z)
-        assert np.allclose(A_tuck.k_mode_product(2, M).full(), Z)
+        assert np.allclose(A_tuck.k_mode_product(0, M).to_dense(), Z)
+        assert np.allclose(A_tuck.k_mode_product(1, M).to_dense(), Z)
+        assert np.allclose(A_tuck.k_mode_product(2, M).to_dense(), Z)
 
 
 class SparseTensorTest(TestCase):
@@ -134,11 +133,11 @@ class SparseTuckerTest(TestCase):
         A = self.creareTestTensor()
         A = SparseTensor.dense2sparse(A)
         A_tuck = Tucker.sparse2tuck(A, max_rank=(2, 3, 4), maxiter=None)
-        assert back.norm(A.to_dense() - A_tuck.full()) / back.norm(A.to_dense()) <= 1e-6
+        assert back.norm(A.to_dense() - A_tuck.to_dense()) / back.norm(A.to_dense()) <= 1e-6
 
     def testHOOI(self):
         set_backend("pytorch")
         A = self.creareTestTensor()
         A = SparseTensor.dense2sparse(A)
         A_tuck = Tucker.sparse2tuck(A, max_rank=(2, 3, 4))
-        assert back.norm(A.to_dense() - A_tuck.full()) / back.norm(A.to_dense()) <= 1e-8
+        assert back.norm(A.to_dense() - A_tuck.to_dense()) / back.norm(A.to_dense()) <= 1e-8
