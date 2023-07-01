@@ -1,23 +1,11 @@
 import numpy as np
 
-from typing import List, Union, Sequence, Dict
+from typing import List, Union, Sequence
 from dataclasses import dataclass, field
 from string import ascii_letters
 from copy import deepcopy
 
-from scipy.sparse.linalg import LinearOperator, svds
-
-from tucker_riemopt import backend as back, Tucker as RegularTucker
-
-try:
-    import torch
-except ImportError as error:
-    message = ("Impossible to import PyTorch.\n"
-               "To use tucker_riemopt with the PyTorch backend, "
-               "you must first install PyTorch!")
-    raise ImportError(message) from error
-
-ML_rank = Union[int, Sequence[int]]
+from tucker_riemopt import backend as back
 
 
 @dataclass()
@@ -25,7 +13,7 @@ class SFTucker:
     core: back.type() = field(default_factory=back.tensor)
     regular_factors: List[back.type()] = field(default_factory=list)
     num_shared_factors: int = 0
-    shared_factor: back.type() = field(default_factory=back.tensor)
+    shared_factor: Union[back.type(), None] = None
 
     @classmethod
     def __sf_hosvd(cls, dense_tensor: back.type(), ds: int, sft_rank=None, eps=1e-14):
@@ -86,8 +74,7 @@ class SFTucker:
         .. math::
             (1): \quad \|A - T_{optimal}\|_F = \eps \|A\|_F
 
-        :param eps: if `sft_rank` is `None`, then `eps` represents precision of approximation as specified at (1).
-         If `sft_rank` is not `None`, then ignored.
+        :param eps: precision of approximation as specified at (1).
         :return: SF-Tucker representation of the provided dense tensor.
         """
         shape = dense_tensor.shape
@@ -101,7 +88,7 @@ class SFTucker:
     @property
     def ndim(self) -> int:
         """
-        :return: dimensionality of tensor
+        :return: dimensionality of the tensor
         """
         return len(self.core.shape)
 
@@ -122,57 +109,64 @@ class SFTucker:
     @property
     def shape(self) -> Sequence[int]:
         """
-        :return: sequence represents the shape of SF-Tucker tensor.
+        :return: sequence represents the shape of the SF-Tucker tensor.
         """
         return [self.regular_factors[i].shape[0] for i in range(self.dt)] + [self.shared_factor.shape[0]] * self.ds
 
     @property
-    def rank(self) -> Sequence[int]:
+    def rank(self) -> List[int]:
         """
         Get SFT-rank of the SF-Tucker tensor.
 
         :return: sequence represents the SFT-rank of tensor.
         """
-        return self.core.shape
+        return list(self.core.shape)[:self.dt] + [self.core.shape[-1]]
 
     @property
     def dtype(self) -> type:
         """
-        Get dtype of the elements in SF-Tucker tensor.
+        Get dtype of the elements in the SF-Tucker tensor.
 
         :return: dtype
         """
         return self.core.dtype
 
-    def __add__(self, other):
+    def __add__(self, other: "SFTucker"):
         """
-            Add two `Tucker` tensors. Result rank is doubled.
+        Add two `Tucker` tensors. The ML-rank of the result is the sum of ML-ranks of the operands.
+
+        :param other: `Tucker` tensor.
+        :return: `Tucker` tensor.
+        :raise: ValueError if amount of shared factors of `self` and `other` doesn't match.
         """
         if self.num_shared_factors != other.num_shared_factors:
-            return self.to_regular_tucker() + other.to_regular_tucker()
-        r1 = self.rank
-        r2 = other.rank
+            raise ValueError("Amount of shared factors doesn't match. You probably should convert tensors to regular"
+                             "Tucker format.")
+        r1 = self.rank + [self.core.shape[-1]] * (self.ds - 1)
+        r2 = other.rank + [other.core.shape[-1]] * (other.ds - 1)
         padded_core1 = back.pad(self.core, [(0, r2[j]) if j > 0 else (0, 0) for j in range(self.ndim)],
                                 mode="constant", constant_values=0)
         padded_core2 = back.pad(other.core, [(r1[j], 0) if j > 0 else (0, 0) for j in range(other.ndim)],
                                 mode="constant", constant_values=0)
         core = back.concatenate((padded_core1, padded_core2), axis=0)
-        common_factors = []
-        for i in range(len(self.regular_factors)):
-            common_factors.append(back.concatenate((self.regular_factors[i],
-                                                    other.regular_factors[i]), axis=1))
-        symmetric_factor = back.concatenate((self.shared_factor,
-                                             other.shared_factor), axis=1)
-        return SFTucker(core=core, regular_factors=common_factors,
-                        num_shared_factors=self.num_shared_factors, shared_factor=symmetric_factor)
+        regular_factors = [
+            back.concatenate((self.regular_factors[i],
+                              other.regular_factors[i]), axis=1) for i in range(self.dt)
+        ]
+        shared_factor = back.concatenate((self.shared_factor, other.shared_factor), axis=1)
+        return SFTucker(core, regular_factors, self.num_shared_factors, shared_factor)
 
-    def __rmul__(self, a):
+    def __rmul__(self, a: float):
         """
-            Elementwise multiplication of `Tucker` tensor by scalar.
+        Elementwise multiplication of `SF-Tucker` tensor by scalar.
+
+        :param a: scalar value.
+        :return: `SF-Tucker` tensor.
         """
-        new_tensor = deepcopy(self)
-        return SFTucker(a * new_tensor.core, new_tensor.regular_factors,
-                        self.num_shared_factors, new_tensor.shared_factor)
+        # new_tensor = deepcopy(self)
+        # return SFTucker(a * new_tensor.core, new_tensor.regular_factors,
+        #                 self.num_shared_factors, new_tensor.shared_factor)
+        return SFTucker(a * self.core, self.regular_factors, self.num_shared_factors, self.shared_factor)
 
     def __neg__(self):
         return (-1) * self
@@ -181,164 +175,148 @@ class SFTucker:
         other = -other
         return self + other
 
-    def round(self, max_rank: ML_rank = None, eps=1e-14):
+    def round(self, max_rank: Union[None, Sequence[int]] = None, eps=1e-14):
+        """
+                Perform rounding procedure. The `SF-Tucker` tensor will be approximated by `SF-Tucker` tensor with rank
+                at most `max_rank`.
+                .. math::
+                    (1): \quad \|A - T_{optimal}\|_F = \eps \|A\|_F
+
+                :param max_rank: maximum possible `SFT rank` of the approximation. Expects a sequence of integers. If
+                 provided a sequence of two elements, then the first element is treated as a value of a multilinear part
+                 of rank with all equal components. If `None` provided, will be performed approximation with precision
+                 `eps`. For example, if `max_rank=[2, 5]` for three-dimensional tensor, then actual SFT rank is treated
+                 as `[2, 2, 5]'.
+                :param eps: precision of approximation as specified at (1).
+                :return: `Tucker` tensor.
+        """
         if eps < 0:
             raise ValueError("eps should be greater or equal than 0")
-        if max_rank is None:
-            max_rank = self.rank
-        elif type(max_rank) is int:
-            max_rank = [max_rank] * self.ndim
 
-        factors = [None] * (self.ndim - self.num_shared_factors + 1)
-        intermediate_factors = [None] * (self.ndim - self.num_shared_factors + 1)
-        for i in range(self.ndim - self.num_shared_factors):
+        factors = [None] * self.dt
+        intermediate_factors = [None] * self.dt
+        for i in range(self.dt):
             factors[i], intermediate_factors[i] = back.qr(self.regular_factors[i])
-        factors[-1], intermediate_factors[-1] = back.qr(self.shared_factor)
+        shared_Q, shared_R = back.qr(self.shared_factor)
+        intermediate_core = SFTucker(self.core, intermediate_factors, self.num_shared_factors, shared_R).to_dense()
+        intermediate_core = self.__sf_hosvd(intermediate_core, self.ds, eps=eps)
 
-        intermediate_tensor = SFTucker(self.core, intermediate_factors[:-1],
-                                       self.num_shared_factors, intermediate_factors[-1]).full()
-        modes = list(np.arange(0, self.ndim))
-        for i in range(self.ndim - self.num_shared_factors):
-            unfolding = back.transpose(intermediate_tensor, [modes[i], *(modes[:i] + modes[i + 1:])])
-            unfolding = back.reshape(unfolding, (intermediate_tensor.shape[i], -1), order="F")
-            u, _, _ = back.svd(unfolding, full_matrices=False)
-            u = u[:, :max_rank[i]]
-            factors[i] @= u
-        core_concat = None
-        for i in range(self.num_shared_factors):
-            j = len(self.regular_factors) + i
-            unfolding = back.transpose(intermediate_tensor, [modes[j], *(modes[:j] + modes[j + 1:])])
-            unfolding = back.reshape(unfolding, (intermediate_tensor.shape[j], -1), order="F")
-            if core_concat is None:
-                core_concat = unfolding
-            else:
-                core_concat = back.concatenate([core_concat, unfolding], axis=1)
-        u, _, _ = back.svd(core_concat, full_matrices=False)
-        u = u[:, :max_rank[-1]]
-        factors[-1] @= u
-        core = self
-        for i in range(self.ndim - self.num_shared_factors):
-            core = core.k_mode_product(i, factors[i].T)
-        core = core.symmetric_modes_product(factors[-1].T).full()
-        return SFTucker(core, factors[:-1], self.num_shared_factors, factors[-1])
+        if max_rank is None:
+            max_rank = intermediate_core.rank
+        elif len(max_rank) == 2:
+            max_rank = [max_rank[0]] * self.dt + [max_rank[1]]
 
-    def flat_inner(self, other):
+        rank_slices = []
+        for i in range(self.dt):
+            rank_slices.append(slice(0, max_rank[i]))
+            factors[i] = factors[i] @ intermediate_core.regular_factors[i]
+            factors[i] = factors[i][:, :max_rank[i]]
+        rank_slices.extend([slice(0, max_rank[-1])] * self.ds)
+        shared_factor = shared_Q @ intermediate_core.shared_factor
+        return SFTucker(intermediate_core.core[tuple(rank_slices)], factors,
+                        self.num_shared_factors, shared_factor)
+
+    def flat_inner(self, other: "SFTucker"):
         """
-            Calculate inner product of given `Tucker` tensors.
+        Calculate inner product of given `SF-Tucker` tensors.
+
+        :param other: `SF-Tucker` tensor.
+        :return: result of inner product.
         """
         if self.num_shared_factors != other.num_shared_factors:
-            return self.to_regular_tucker().flat_inner(other.to_regular_tucker())
-        factors = []
-        transposed_factors = []
+            raise ValueError("Amount of shared factors doesn't match. You probably should convert tensors to regular"
+                             "Tucker format.")
         core_letters = ascii_letters[:self.ndim]
+        rev_letters = ascii_letters[self.ndim:][::-1]
+
+        factors = []
         factors_letters = []
         transposed_letters = []
         intermediate_core_letters = []
-        symmetric_factor = other.shared_factor.T @ self.shared_factor
-        rev_letters = ascii_letters[self.ndim:][::-1]
+        shared_factor = other.shared_factor.T @ self.shared_factor
         for i in range(1, self.ndim + 1):
-            j = i - 1
-            if j < self.ndim - self.num_shared_factors:
-                factors.append(self.regular_factors[j])
-                factors_letters.append(ascii_letters[self.ndim + i] + core_letters[j])
-                transposed_factors.append(other.regular_factors[j].T)
-                transposed_letters.append(rev_letters[j] + ascii_letters[self.ndim + i])
-                intermediate_core_letters.append(rev_letters[j])
+            if i <= self.dt:
+                factors.append(self.regular_factors[i - 1])
+                factors_letters.append(f"{ascii_letters[self.ndim + i]}{core_letters[i - 1]}")
+                transposed_letters.append(f"{ascii_letters[self.ndim + i]}{rev_letters[i - 1]}")
+                intermediate_core_letters.append(rev_letters[i - 1])
             else:
-                factors.append(symmetric_factor)
-                factors_letters.append(ascii_letters[self.ndim + i] + core_letters[j])
+                factors.append(shared_factor)
+                factors_letters.append(ascii_letters[self.ndim + i] + core_letters[i - 1])
                 intermediate_core_letters.append(ascii_letters[self.ndim + i])
 
         source = ",".join([core_letters] + factors_letters + transposed_letters)
         intermediate_core = back.einsum(source + "->" + "".join(intermediate_core_letters),
-                                        self.core, *factors, *transposed_factors)
+                                        self.core, *factors, *other.regular_factors)
         return (intermediate_core * other.core).sum()
 
-    def k_mode_product(self, k: int, mat: back.type()):
+    def k_mode_product(self, k: int, matrix: back.type()):
         """
-        K-mode tensor-matrix product.
+        k-mode tensor-matrix contraction.
 
-        Parameters
-        ----------
-        k: int
-            mode id from 0 to ndim - 1
-        mat: matrix of backend tensor type
-            matrix with which Tucker tensor is contracted by k mode
+        :param k: from 0 to d-1.
+        :param matrix: must contain `self.rank[k]` columns.
+        :return: `SFTucker` tensor.
         """
         if k < 0 or k >= self.ndim:
-            raise ValueError(f"k shoduld be from 0 to {self.ndim - 1}")
-        if k >= self.ndim - self.num_shared_factors:
-            return self.to_regular_tucker().k_mode_product(k, mat)
-        new_tensor = deepcopy(self)
-        new_tensor.regular_factors[k] = mat @ new_tensor.regular_factors[k]
-        return new_tensor
+            raise ValueError(f"k should be from 0 to {self.ndim - 1}")
+        if k >= self.dt:
+            raise ValueError(f"You are trying to contract by shared mode. Use method `shared_modes_product`.")
 
-    def symmetric_modes_product(self, mat: back.type()):
+        # new_tensor = deepcopy(self)
+        # new_tensor.regular_factors[k] = mat @ new_tensor.regular_factors[k]
+        # return new_tensor
+        regular_factors = self.regular_factors[:k] + [matrix @ self.regular_factors[k]] + self.regular_factors[k + 1:]
+        return SFTucker(self.core, regular_factors, self.num_shared_factors, self.shared_factor)
+
+    def shared_modes_product(self, matrix: back.type()):
         """
-            Tensor-matrix product for all sf_tucker modes
+        Tensor-matrix contraction by shared modes.
+
+        :param matrix: must contain `self.rank[-1]` columns.
+        :return: `SF-Tucker` tensor.
         """
-        new_tensor = deepcopy(self)
-        new_tensor.shared_factor = mat @ new_tensor.shared_factor
-        return new_tensor
+        # new_tensor = deepcopy(self)
+        # new_tensor.shared_factor = mat @ new_tensor.shared_factor
+        # return new_tensor
+        new_shared_factor = matrix @ self.shared_factor
+        return SFTucker(self.core, self.regular_factors, self.num_shared_factors, new_shared_factor)
 
     def norm(self, qr_based: bool = False):
         """
-        Frobenius norm of `Tucker`.
+            Frobenius norm of `SF-Tucker` tensor.
 
-        Parameters
-        ----------
-        qr_based: bool
-            whether to use stable QR-based implementation of norm, which is not differentiable,
-            or unstable but differentiable implementation based on inner product. By default differentiable implementation
-            is used
-        Returns
-        -------
-        F-norm: float
-            non-negative number which is the Frobenius norm of `Tucker` tensor
+            :param qr_based: whether to use stable QR-based implementation of norm, which is not differentiable,
+                or unstable but differentiable implementation based on inner product. By default, differentiable
+                implementation is used.
+            :return: non-negative number which is the Frobenius norm of `SF-Tucker` tensor.
         """
         if qr_based:
-            common_factors = []
-            for i in range(len(self.regular_factors)):
-                common_factors.append(back.qr(self.regular_factors[i])[1])
-            symmetric_factor = back.qr(self.shared_factor)[1]
+            common_factors = [back.qr(self.regular_factors[i])[1] for i in range(self.dt)]
+            shared_factor = back.qr(self.shared_factor)[1]
             new_tensor = SFTucker(self.core, common_factors,
-                                  self.num_shared_factors, symmetric_factor)
-            new_tensor = new_tensor.full()
+                                  self.num_shared_factors, shared_factor)
+            new_tensor = new_tensor.to_dense()
             return back.norm(new_tensor)
 
         return back.sqrt(self.flat_inner(self))
 
-    def full(self):
+    def to_dense(self):
         """
-            Dense representation of `Tucker`.
+        Convert `SF-Tucker` tensor to dense representation.
+
+        :return: dense d-dimensional representation of `SF-Tucker` tensor.
         """
         core_letters = ascii_letters[:self.ndim]
-        factor_letters = ""
-        tensor_letters = ""
-        factors = []
-        curr_common_factor = 0
-        for i in range(self.ndim):
-            if i < self.ndim - self.num_shared_factors:
-                factor_letters += f"{ascii_letters[self.ndim + i]}{ascii_letters[i]},"
-                tensor_letters += ascii_letters[self.ndim + i]
-                factors.append(self.regular_factors[i])
-            else:
-                factors.append(self.shared_factor)
-                factor_letters += f"{ascii_letters[self.ndim + i]}{ascii_letters[i]},"
-                tensor_letters += ascii_letters[self.ndim + i]
-        einsum_str = core_letters + "," + factor_letters[:-1] + "->" + tensor_letters
+        factor_letters = [f"{ascii_letters[self.ndim + i]}{ascii_letters[i]}" for i in range(self.ndim)]
+        tensor_letters = ascii_letters[self.ndim:2 * self.ndim]
+        factors = self.regular_factors + [self.shared_factor] * self.ds
+        einsum_str = core_letters + "," + ",".join(factor_letters) + "->" + tensor_letters
         return back.einsum(einsum_str, self.core, *factors)
-
-    def to_regular_tucker(self):
-        factors = []
-        for i in range(self.ndim - self.num_shared_factors):
-            factors.append(self.regular_factors[i])
-        factors += [self.shared_factor for _ in range(self.num_shared_factors)]
-        return RegularTucker(core=self.core, factors=factors)
 
     def __deepcopy__(self, memodict={}):
         new_core = back.copy(self.core)
         common_factors = [back.copy(factor) for factor in self.regular_factors]
-        symmetic_factor = back.copy(self.shared_factor)
+        shared_factor = back.copy(self.shared_factor)
         return self.__class__(new_core, common_factors,
-                              self.num_shared_factors, symmetic_factor)
+                              self.num_shared_factors, shared_factor)
