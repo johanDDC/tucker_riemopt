@@ -3,8 +3,8 @@ import numpy as np
 from unittest import TestCase
 
 from tucker_riemopt import backend as back
-from tucker_riemopt.symmetric.tucker import Tucker
-from tucker_riemopt.symmetric.riemopt import compute_gradient_projection
+from tucker_riemopt.sf_tucker.sf_tucker import SFTucker
+from tucker_riemopt.sf_tucker.riemannian import grad
 
 
 class RiemoptTest(TestCase):
@@ -18,7 +18,7 @@ class RiemoptTest(TestCase):
         symmetric_factor = back.tensor(np.random.randn(n, n))
         symmetric_factor = back.qr(symmetric_factor)[0]
         core = back.tensor(np.random.randn(n, n, n))
-        return Tucker(core, [common_factor], 2, symmetric_factor)
+        return SFTucker(core, [common_factor], 2, symmetric_factor)
 
     @staticmethod
     def project_on_tangent(Z, G, U, V):
@@ -55,17 +55,18 @@ class RiemoptTest(TestCase):
         def f_full(A):
             return (A ** 2 - A).sum()
 
-        def f(T: Tucker):
-            A = T.full()
+        def f(T: SFTucker):
+            A = T.to_dense()
             return (A ** 2 - A).sum()
 
         full_grad = back.grad(f_full, argnums=0)
 
         T = self.createTestTensor(4)
 
-        eucl_grad = full_grad(T.full())
-        riem_grad, _ = compute_gradient_projection(f, T)
-        projected_eucl_grad = RiemoptTest.project_on_tangent(eucl_grad, T.core, T.symmetric_factor, T.common_factors[0])
+        eucl_grad = full_grad(T.to_dense())
+        riem_grad, _ = grad(f, T)
+        riem_grad = riem_grad.construct()
+        projected_eucl_grad = RiemoptTest.project_on_tangent(eucl_grad, T.core, T.shared_factor, T.regular_factors[0])
 
-        assert(np.allclose(back.to_numpy(eucl_grad), back.to_numpy(riem_grad.full()), atol=1e-5))
-        assert (np.allclose(back.to_numpy(projected_eucl_grad), back.to_numpy(riem_grad.full()), atol=1e-5))
+        assert(np.allclose(back.to_numpy(eucl_grad), back.to_numpy(riem_grad.to_dense()), atol=1e-5))
+        assert (np.allclose(back.to_numpy(projected_eucl_grad), back.to_numpy(riem_grad.to_dense()), atol=1e-5))
