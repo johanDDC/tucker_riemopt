@@ -3,8 +3,8 @@ import numpy as np
 from unittest import TestCase
 
 from tucker_riemopt import backend as back
-from tucker_riemopt.sf_tucker.sf_tucker import SFTucker
-from tucker_riemopt.sf_tucker.riemannian import grad
+from tucker_riemopt import SFTucker
+from tucker_riemopt import SFTuckerRiemannian
 
 
 class RiemoptTest(TestCase):
@@ -64,9 +64,25 @@ class RiemoptTest(TestCase):
         T = self.createTestTensor(4)
 
         eucl_grad = full_grad(T.to_dense())
-        riem_grad, _ = grad(f, T)
+        riem_grad, _ = SFTuckerRiemannian.grad(f, T)
         riem_grad = riem_grad.construct()
         projected_eucl_grad = RiemoptTest.project_on_tangent(eucl_grad, T.core, T.shared_factor, T.regular_factors[0])
 
-        assert(np.allclose(back.to_numpy(eucl_grad), back.to_numpy(riem_grad.to_dense()), atol=1e-5))
+        assert (np.allclose(back.to_numpy(eucl_grad), back.to_numpy(riem_grad.to_dense()), atol=1e-5))
         assert (np.allclose(back.to_numpy(projected_eucl_grad), back.to_numpy(riem_grad.to_dense()), atol=1e-5))
+
+    def testLinearComb(self):
+        np.random.seed(229)
+
+        def f(T: SFTucker):
+            A = T.to_dense()
+            return (A ** 2 - A).sum()
+
+        T = self.createTestTensor(4)
+
+        tg_vector1, _ = SFTuckerRiemannian.grad(f, T)
+        zero_tg_vector = SFTuckerRiemannian.TangentVector(tg_vector1.point, back.zeros_like(tg_vector1.point.core))
+        tg_vector2 = tg_vector1.linear_comb(xi=zero_tg_vector)
+
+        assert np.allclose(back.to_numpy(tg_vector1.construct().to_dense()),
+                           back.to_numpy(tg_vector2.construct().to_dense()), atol=1e-5)
