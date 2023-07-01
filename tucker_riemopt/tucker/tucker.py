@@ -318,6 +318,7 @@ class Tucker(SFTucker):
     def k_mode_product(self, k: int, matrix: back.type()):
         """
         k-mode tensor-matrix contraction.
+
         :param k: from 0 to d-1.
         :param matrix: must contain `self.rank[k]` columns.
         :return: `Tucker` tensor.
@@ -336,8 +337,8 @@ class Tucker(SFTucker):
         Frobenius norm of `Tucker` tensor.
 
         :param qr_based: whether to use stable QR-based implementation of norm, which is not differentiable,
-            or unstable but differentiable implementation based on inner product. By default differentiable implementation
-            is used.
+            or unstable but differentiable implementation based on inner product. By default, differentiable
+            implementation used.
         :return: non-negative number which is the Frobenius norm of `Tucker` tensor.
         """
         if qr_based:
