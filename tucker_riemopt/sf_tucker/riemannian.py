@@ -20,7 +20,7 @@ class TangentVector:
         self.point = manifold_point
         self.delta_core = delta_core if delta_core is not None else self.point.core
         self.delta_regular_factors = delta_regular_factors if delta_regular_factors is not None else \
-            [back.zeros_like(self.point.regular_factors[i]) for i in range(self.point.ndim)]
+            [back.zeros_like(self.point.regular_factors[i]) for i in range(self.point.dt)]
         self.delta_shared_factor = delta_shared_factor if delta_shared_factor is not None else \
             back.zeros_like(self.point.shared_factor)
 
