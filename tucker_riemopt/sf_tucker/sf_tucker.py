@@ -65,25 +65,31 @@ class SFTucker:
 
         einsum_str = tensor_letters + "," + ",".join(factor_letters) + "->" + core_letters
         core = back.einsum(einsum_str, dense_tensor, *factors)
-        return cls(core, factors, ds, factors[-1])
+        return cls(core, factors[:dt], ds, factors[-1])
 
     @classmethod
-    def from_dense(cls, dense_tensor: back.type(), eps=1e-14):
+    def from_dense(cls, dense_tensor: back.type(), ds: Union[int, None] = None, eps=1e-14):
         """
         Converts dense tensor into SF-Tucker representation.
         .. math::
             (1): \quad \|A - T_{optimal}\|_F = \eps \|A\|_F
 
+        :param ds: number of shared modes. If `None`, then ds=N, where N is a number of last equal modes.
         :param eps: precision of approximation as specified at (1).
         :return: SF-Tucker representation of the provided dense tensor.
         """
         shape = dense_tensor.shape
         reversed_shape = shape[::-1]
         num_equal_modes = 0
-        while reversed_shape[num_equal_modes] != shape[-1]:
+        while num_equal_modes < len(shape) and reversed_shape[num_equal_modes] == shape[-1]:
             num_equal_modes += 1
+        if ds is None:
+            ds = num_equal_modes
+        if ds > num_equal_modes:
+            raise ValueError(f"ds cannot be larger then {num_equal_modes}.")
 
-        return cls.__sf_hosvd(dense_tensor, num_equal_modes, eps=eps)
+
+        return cls.__sf_hosvd(dense_tensor, ds, eps=eps)
 
     @property
     def ndim(self) -> int:
@@ -213,6 +219,7 @@ class SFTucker:
             factors[i] = factors[i][:, :max_rank[i]]
         rank_slices.extend([slice(0, max_rank[-1])] * self.ds)
         shared_factor = shared_Q @ intermediate_core.shared_factor
+        shared_factor = shared_factor[:, :max_rank[-1]]
         return SFTucker(intermediate_core.core[tuple(rank_slices)], factors,
                         self.num_shared_factors, shared_factor)
 
