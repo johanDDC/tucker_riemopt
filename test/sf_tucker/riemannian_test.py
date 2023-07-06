@@ -49,14 +49,15 @@ class RiemoptTest(TestCase):
             tucker(G, U, dot_U, V) + \
             tucker(G, U, U, dot_V)
 
-    def testGradProjection(self):
+    @staticmethod
+    def f(T: SFTucker):
+        A = T.to_dense()
+        return (A ** 2 - A).sum()
+
+    def testGrad(self):
         np.random.seed(229)
 
         def f_full(A):
-            return (A ** 2 - A).sum()
-
-        def f(T: SFTucker):
-            A = T.to_dense()
             return (A ** 2 - A).sum()
 
         full_grad = back.grad(f_full, argnums=0)
@@ -64,25 +65,60 @@ class RiemoptTest(TestCase):
         T = self.createTestTensor(4)
 
         eucl_grad = full_grad(T.to_dense())
-        riem_grad, _ = SFTuckerRiemannian.grad(f, T)
+        tucker_eucl_grad = SFTucker.from_dense(eucl_grad, ds=2)
+        riem_grad, _ = SFTuckerRiemannian.grad(self.f, T)
         riem_grad = riem_grad.construct()
         projected_eucl_grad = RiemoptTest.project_on_tangent(eucl_grad, T.core, T.shared_factor, T.regular_factors[0])
 
         assert (np.allclose(back.to_numpy(eucl_grad), back.to_numpy(riem_grad.to_dense()), atol=1e-5))
         assert (np.allclose(back.to_numpy(projected_eucl_grad), back.to_numpy(riem_grad.to_dense()), atol=1e-5))
+        assert np.allclose(back.to_numpy(riem_grad.to_dense()),
+                           back.to_numpy(SFTuckerRiemannian.project(T, tucker_eucl_grad).construct().to_dense()),
+                           atol=1e-5)
 
-    def testLinearComb(self):
+    def testProject(self):
         np.random.seed(229)
 
-        def f(T: SFTucker):
-            A = T.to_dense()
-            return (A ** 2 - A).sum()
+        T = self.createTestTensor(4)
+        tg_vector, _ = SFTuckerRiemannian.grad(self.f, T)
+        tg_vector_proj = SFTuckerRiemannian.project(T, tg_vector.construct())
+        assert np.allclose(back.to_numpy(tg_vector.construct().to_dense()),
+                           back.to_numpy(tg_vector_proj.construct().to_dense()), atol=1e-5)
+
+
+    def testZeroTangentVector(self):
+        np.random.seed(229)
 
         T = self.createTestTensor(4)
 
-        tg_vector1, _ = SFTuckerRiemannian.grad(f, T)
+        tg_vector1, _ = SFTuckerRiemannian.grad(self.f, T)
         zero_tg_vector = SFTuckerRiemannian.TangentVector(tg_vector1.point, back.zeros_like(tg_vector1.point.core))
         tg_vector2 = tg_vector1.linear_comb(xi=zero_tg_vector)
 
         assert np.allclose(back.to_numpy(tg_vector1.construct().to_dense()),
                            back.to_numpy(tg_vector2.construct().to_dense()), atol=1e-5)
+
+    def testLinearComb(self):
+        np.random.seed(229)
+
+        a = 2
+        b = 3
+        T = self.createTestTensor(4)
+        tg_vector1, _ = SFTuckerRiemannian.grad(self.f, T)
+        tg_vector2 = SFTuckerRiemannian.TangentVector(T, back.randn(T.core.shape),
+                                                      [back.randn(T.regular_factors[0].shape)],
+                                                      back.randn(T.shared_factor.shape))
+
+        dumb_combination = a * tg_vector1.construct() + b * tg_vector2.construct()
+        wise_combination = tg_vector1.linear_comb(a, b, tg_vector2)
+        tangent_manifold_point = SFTuckerRiemannian.TangentVector(T)
+        dumb_point_combination = a * tg_vector1.construct() + b * T
+        wise_point_combination = tg_vector1.linear_comb(a, b)
+
+        assert np.allclose(back.to_numpy(dumb_combination.to_dense()),
+                           back.to_numpy(wise_combination.construct().to_dense()), atol=1e-5)
+        assert np.allclose(back.to_numpy(T.to_dense()),
+                           back.to_numpy(tangent_manifold_point.construct().to_dense()), atol=1e-5)
+        assert np.allclose(back.to_numpy(dumb_point_combination.to_dense()),
+                           back.to_numpy(wise_point_combination.construct().to_dense()), atol=1e-5)
+
