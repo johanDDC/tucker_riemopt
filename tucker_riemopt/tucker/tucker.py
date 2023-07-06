@@ -1,6 +1,6 @@
 import numpy as np
 
-from typing import Union, Sequence
+from typing import Union, Sequence, List
 from dataclasses import dataclass, field
 from string import ascii_letters
 from copy import deepcopy
@@ -183,6 +183,15 @@ class Tucker(SFTucker):
         :return: dtype.
         """
         return self.core.dtype
+
+    @property
+    def factors(self) -> List[back.type()]:
+        """
+        Alias for `regular factors`.
+
+        :return: regular factors
+        """
+        return self.regular_factors
 
     def __add__(self, other: "Tucker"):
         """
