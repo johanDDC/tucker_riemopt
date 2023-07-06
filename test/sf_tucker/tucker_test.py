@@ -29,6 +29,10 @@ class TuckerTensorTest(TestCase):
         assert np.allclose(A.norm(qr_based=False), back.norm(A.to_dense()))
         assert np.allclose(A.norm(qr_based=True), back.norm(A.to_dense()))
 
+    def testFlatInner(self):
+        A = self.createTestTensor(self.n)
+        assert np.allclose(back.to_numpy(A.norm(qr_based=True) ** 2), back.to_numpy(A.flat_inner(A)), atol=1e-5)
+
     def testModeProd(self):
         A = self.createTestTensor(self.n)
         Z = back.zeros((self.n, self.n, self.n))
