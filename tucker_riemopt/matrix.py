@@ -1,4 +1,3 @@
-from flax import struct
 from string import ascii_letters
 from copy import copy
 from dataclasses import dataclass, field
