@@ -11,7 +11,7 @@ class SparseTensor:
         Contains sparse tensor in coo format. It can be constructed manually or converted from dense format.
     """
 
-    def __init__(self, shape: Sequence[int], inds: Sequence[Sequence[int]], vals: Sequence[back.float64]):
+    def __init__(self, shape: Sequence[int], inds: Sequence[Sequence[int]], vals: Sequence[float]):
         """
         Parameters
         ----------
