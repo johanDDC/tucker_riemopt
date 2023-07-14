@@ -6,12 +6,11 @@ from string import ascii_letters
 from copy import deepcopy
 
 from tucker_riemopt import backend as back
+from tucker_riemopt.tucker.tucker import Tucker
 
 
 @dataclass()
-class SFTucker:
-    core: back.type() = field(default_factory=back.tensor)
-    regular_factors: List[back.type()] = field(default_factory=list)
+class SFTucker(Tucker):
     num_shared_factors: int = 0
     shared_factor: Union[back.type(), None] = None
 
@@ -97,6 +96,15 @@ class SFTucker:
         :return: dimensionality of the tensor
         """
         return len(self.core.shape)
+
+    @property
+    def regular_factors(self):
+        """
+        Alias for `factors`.
+
+        :return: factors
+        """
+        return self.factors
 
     @property
     def dt(self) -> int:

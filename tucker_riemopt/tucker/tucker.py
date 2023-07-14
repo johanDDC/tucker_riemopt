@@ -7,14 +7,15 @@ from copy import deepcopy
 from scipy.sparse.linalg import LinearOperator, svds
 
 from tucker_riemopt import backend as back
-from tucker_riemopt.sf_tucker.sf_tucker import SFTucker
 from tucker_riemopt.sparse import SparseTensor
 
 ML_rank = Union[int, Sequence[int]]
 
 
 @dataclass()
-class Tucker(SFTucker):
+class Tucker:
+    core: back.type() = field(default_factory=back.tensor)
+    factors: List[back.type()] = field(default_factory=list)
     """
     Tucker tensor factorisation. We represent Tucker tensor as SF-Tucker tensor with no shared factors. One may note,
     that more valid formulation is to represent Tucker as SF-Tucker with one shared factor, but we do not employ
@@ -164,7 +165,7 @@ class Tucker(SFTucker):
         """
         :return: sequence represents the shape of the Tucker tensor.
         """
-        return [self.regular_factors[i].shape[0] for i in range(self.dt)] + [self.shared_factor.shape[0]] * self.ds
+        return [self.factors[i].shape[0] for i in range(self.dt)] + [self.shared_factor.shape[0]] * self.ds
 
     @property
     def rank(self) -> Sequence[int]:
@@ -184,15 +185,6 @@ class Tucker(SFTucker):
         """
         return self.core.dtype
 
-    @property
-    def factors(self) -> List[back.type()]:
-        """
-        Alias for `regular factors`.
-
-        :return: regular factors
-        """
-        return self.regular_factors
-
     def __add__(self, other: "Tucker"):
         """
         Add two `Tucker` tensors. The ML-rank of the result is the sum of ML-ranks of the operands.
@@ -207,7 +199,7 @@ class Tucker(SFTucker):
         padded_core2 = back.pad(other.core, [(r1[j], 0) if j > 0 else (0, 0) for j in range(other.ndim)],
                                 mode="constant", constant_values=0)
         core = back.concatenate((padded_core1, padded_core2), axis=0)
-        factors = [back.concatenate((self.regular_factors[i], other.regular_factors[i]), axis=1) for i in range(self.ndim)]
+        factors = [back.concatenate((self.factors[i], other.factors[i]), axis=1) for i in range(self.ndim)]
         return Tucker(core, factors)
 
     def __mul__(self, other: "Tucker"):
@@ -220,8 +212,8 @@ class Tucker(SFTucker):
         core = back.kron(self.core, other.core)
         factors = []
         for i in range(self.ndim):
-            contraction = back.einsum('ia,ib->iab', self.regular_factors[i], other.regular_factors[i])
-            contraction = back.reshape(contraction, (self.regular_factors[i].shape[0], -1), order="F")
+            contraction = back.einsum('ia,ib->iab', self.factors[i], other.factors[i])
+            contraction = back.reshape(contraction, (self.factors[i].shape[0], -1), order="F")
             factors.append(contraction)
         return Tucker(core, factors)
 
@@ -232,7 +224,7 @@ class Tucker(SFTucker):
         :param a: scalar value.
         :return: `Tucker` tensor.
         """
-        return Tucker(a * self.core, self.regular_factors)
+        return Tucker(a * self.core, self.factors)
         # new_tensor = deepcopy(self)
         # return Tucker(a * new_tensor.core, new_tensor.factors)
 
@@ -285,7 +277,7 @@ class Tucker(SFTucker):
         factors = [None] * self.ndim
         intermediate_factors = [None] * self.ndim
         for i in range(self.ndim):
-            factors[i], intermediate_factors[i] = back.qr(self.regular_factors[i])
+            factors[i], intermediate_factors[i] = back.qr(self.factors[i])
         intermediate_core = Tucker(self.core, intermediate_factors)
         intermediate_core = self.__hosvd(intermediate_core.to_dense(), eps=eps)
 
@@ -297,7 +289,7 @@ class Tucker(SFTucker):
         rank_slices = []
         for i in range(self.ndim):
             rank_slices.append(slice(0, max_rank[i]))
-            factors[i] = factors[i] @ intermediate_core.regular_factors[i]
+            factors[i] = factors[i] @ intermediate_core.factors[i]
             factors[i] = factors[i][:, :max_rank[i]]
         return Tucker(intermediate_core.core[tuple(rank_slices)], factors)
 
@@ -321,7 +313,7 @@ class Tucker(SFTucker):
 
         source = ",".join([core_letters] + factors_letters + transposed_letters)
         intermediate_core = back.einsum(source + "->" + "".join(intermediate_core_letters),
-                                        self.core, *self.regular_factors, *other.regular_factors)
+                                        self.core, *self.factors, *other.factors)
         return (intermediate_core * other.core).sum()
 
     def k_mode_product(self, k: int, matrix: back.type()):
@@ -335,7 +327,7 @@ class Tucker(SFTucker):
         if k < 0 or k >= self.ndim:
             raise ValueError(f"k should be from 0 to {self.ndim - 1}")
 
-        new_factors = self.regular_factors[:k] + [matrix @ self.regular_factors[k]] + self.regular_factors[k + 1:]
+        new_factors = self.factors[:k] + [matrix @ self.factors[k]] + self.factors[k + 1:]
         # new_tensor = deepcopy(self)
         # new_tensor.factors[k] = matrix @ new_tensor.factors[k]
         # return new_tensor
@@ -351,7 +343,7 @@ class Tucker(SFTucker):
         :return: non-negative number which is the Frobenius norm of `Tucker` tensor.
         """
         if qr_based:
-            core_factors = [back.qr(self.regular_factors[i])[1] for i in range(self.ndim)]
+            core_factors = [back.qr(self.factors[i])[1] for i in range(self.ndim)]
             new_tensor = Tucker(self.core, core_factors)
             new_tensor = new_tensor.to_dense()
             return back.norm(new_tensor)
@@ -368,9 +360,9 @@ class Tucker(SFTucker):
         factor_letters = [f"{ascii_letters[self.ndim + i]}{ascii_letters[i]}" for i in range(self.ndim)]
         tensor_letters = ascii_letters[self.ndim:2 * self.ndim]
         einsum_str = core_letters + "," + ",".join(factor_letters) + "->" + tensor_letters
-        return back.einsum(einsum_str, self.core, *self.regular_factors)
+        return back.einsum(einsum_str, self.core, *self.factors)
 
     def __deepcopy__(self, memodict={}):
         new_core = back.copy(self.core)
-        new_factors = [back.copy(factor) for factor in self.regular_factors]
+        new_factors = [back.copy(factor) for factor in self.factors]
         return self.__class__(new_core, new_factors)

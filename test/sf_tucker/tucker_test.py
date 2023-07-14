@@ -12,10 +12,10 @@ class TuckerTensorTest(TestCase):
         """
             A = [G; U, V, V], V = ones(n x n)
         """
-        common_factor = np.random.randn(n, n)
+        common_factor = np.random.randn(n, n).astype(np.float32)
         common_factor = back.tensor(common_factor)
         symmetric_factor = back.ones((n, n))
-        core = np.random.randn(n, n, n)
+        core = back.tensor(np.random.randn(n, n, n).astype(np.float32))
         return SFTucker(core, [common_factor], 2, symmetric_factor)
 
     def testAdd(self):

@@ -30,7 +30,7 @@ class PyTorchBackend(Backend, backend_name="pytorch"):
                 "requires_grad": tensor.requires_grad}
 
     @staticmethod
-    def tensor(data, dtype=torch.float64, device="cpu", requires_grad=False):
+    def tensor(data, dtype=torch.float32, device="cpu", requires_grad=False):
         if isinstance(data, np.ndarray):
             data = data.copy()
         return torch.tensor(data, dtype=dtype, device=device, requires_grad=requires_grad)
