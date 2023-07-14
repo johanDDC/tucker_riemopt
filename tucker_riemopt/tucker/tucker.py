@@ -93,7 +93,7 @@ class Tucker:
         core_letters = ascii_letters[d: 2 * d]
         einsum_str = tensor_letters + "," + ",".join(factor_letters) + "->" + core_letters
         core = back.einsum(einsum_str, dense_tensor, *factors)
-        return Tucker(core, factors)
+        return cls(core, factors)
 
     @classmethod
     def from_dense(cls, dense_tensor: back.type(), eps=1e-14):
