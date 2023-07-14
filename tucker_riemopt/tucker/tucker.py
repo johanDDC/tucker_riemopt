@@ -57,7 +57,7 @@ class Tucker:
         return sparse_tucker
     
     @classmethod
-    def __hosvd(cls, dense_tensor: back.type(), ml_rank=None, eps=1e-14):
+    def _hosvd(cls, dense_tensor: back.type(), ml_rank=None, eps=1e-14):
         """
         Converts dense tensor into Tucker representation.
         .. math:: (1): \quad \|A - T_{optimal}\|_F = \eps \|A\|_F
@@ -105,7 +105,7 @@ class Tucker:
         :param eps: precision of approximation as specified at (1).
         :return: Tucker representation of the provided dense tensor.
         """
-        return cls.__hosvd(dense_tensor, eps=eps)
+        return cls._hosvd(dense_tensor, eps=eps)
 
     @classmethod
     def sparse2tuck(cls, sparse_tensor: SparseTensor, max_rank: ML_rank = None, maxiter: Union[int, None] = 5):
@@ -279,7 +279,7 @@ class Tucker:
         for i in range(self.ndim):
             factors[i], intermediate_factors[i] = back.qr(self.factors[i])
         intermediate_core = Tucker(self.core, intermediate_factors)
-        intermediate_core = self.__hosvd(intermediate_core.to_dense(), eps=eps)
+        intermediate_core = self._hosvd(intermediate_core.to_dense(), eps=eps)
 
         if max_rank is None:
             max_rank = intermediate_core.rank
