@@ -16,7 +16,7 @@ class TangentVector:
         self.point = manifold_point
         self.delta_core = delta_core if delta_core is not None else self.point.core
         self.delta_factors = delta_factors if delta_factors is not None else \
-            [back.zeros_like(self.point.regular_factors[i]) for i in range(self.point.ndim)]
+            [back.zeros_like(self.point.factors[i]) for i in range(self.point.ndim)]
 
     @staticmethod
     def group_cores(corner_core, padding_core):
@@ -37,7 +37,7 @@ class TangentVector:
     def construct(self):
         grouped_core = self.group_cores(self.delta_core, self.point.core)
         factors = [back.concatenate([
-            self.point.regular_factors[i], self.delta_factors[i]
+            self.point.factors[i], self.delta_factors[i]
         ], axis=1) for i in range(self.point.ndim)]
         return Tucker(grouped_core, factors)
 
@@ -83,8 +83,8 @@ def grad(f: Callable[[Tucker], float], X: Tucker, retain_graph=False) -> Tuple[T
         return fx
 
     dh = back.grad(h, [0, 1], retain_graph=retain_graph)
-    dS, dV = dh(X.core, [back.zeros_like(X.regular_factors[i]) for i in range(X.ndim)])
-    dV = [dV[i] - X.regular_factors[i] @ (X.regular_factors[i].T @ dV[i]) for i in range(X.ndim)]
+    dS, dV = dh(X.core, [back.zeros_like(X.factors[i]) for i in range(X.ndim)])
+    dV = [dV[i] - X.factors[i] @ (X.factors[i].T @ dV[i]) for i in range(X.ndim)]
     for i in range(X.ndim):
         unfolding_core = back.transpose(X.core, [modes[i], *(modes[:i] + modes[i + 1:])])
         unfolding_core = back.reshape(unfolding_core, (X.core.shape[i], -1), order="F")
