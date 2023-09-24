@@ -21,7 +21,8 @@ class TuckerMatrix(Tucker):
 
     def __matmul__(self, other: Union[back.type(), Tucker, "TuckerMatrix"]):
         """
-        Performs matrix multiplication of tensors.
+        Performs matrix multiplication of tensors. If other's ndim > matrix ndim, then performs batch matmul over last
+        ndim modes.
 
         :param other: can be dense tensor, Tucker or TuckerMatrix. If dense tensor, then treated as vector and matvec
         operation is performed. The result is also a dense tensor. If `Tucker`, then treated as vector and matvec
@@ -41,5 +42,10 @@ class TuckerMatrix(Tucker):
                 factors_letters.append(ascii_letters[self.ndim + 2 * i: self.ndim + 2 * (i + 1)] + core_letters[i])
                 operand_letters.append(factors_letters[-1][0])
                 result_letters.append(factors_letters[-1][1])
+            batch_letters = []
+            for i in range(len(other.shape) - self.ndim):
+                batch_letters.append(ascii_letters[2 * (self.ndim + 1) + i + 1])
+            operand_letters = batch_letters + operand_letters
+            result_letters =  batch_letters + result_letters
             return back.einsum(f"{core_letters},{','.join(factors_letters)},{''.join(operand_letters)}->{''.join(result_letters)}",
                                self.core, *reshaped_factors, other)
