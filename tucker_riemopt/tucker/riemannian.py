@@ -4,6 +4,7 @@ from typing import Union, List, Callable, Tuple
 
 from tucker_riemopt import Tucker
 from tucker_riemopt import backend as back
+from tucker_riemopt.tucker.matrix import TuckerMatrix
 
 
 class TangentVector:
@@ -39,6 +40,8 @@ class TangentVector:
         factors = [back.concatenate([
             self.point.factors[i], self.delta_factors[i]
         ], axis=1) for i in range(self.point.ndim)]
+        if isinstance(self.point, TuckerMatrix):
+            return TuckerMatrix(grouped_core, factors, self.point.n, self.point.m)
         return Tucker(grouped_core, factors)
 
     def linear_comb(self, a: float = 1, b: float = 1, xi: Union["TangentVector", None] = None):

@@ -1,10 +1,12 @@
 import numpy as np
+import torch
 
 from unittest import TestCase
 
 from tucker_riemopt import backend as back, set_backend
 from tucker_riemopt import Tucker
 from tucker_riemopt import TuckerRiemannian
+from tucker_riemopt.tucker.matrix import TuckerMatrix
 
 
 class RiemannianTest(TestCase):
@@ -52,7 +54,6 @@ class RiemannianTest(TestCase):
         assert np.allclose(back.to_numpy(tg_vector.construct().to_dense()),
                            back.to_numpy(tg_vector_proj.construct().to_dense()), atol=1e-5)
 
-
     def testZeroTangentVector(self):
         np.random.seed(229)
 
@@ -87,4 +88,29 @@ class RiemannianTest(TestCase):
                            back.to_numpy(tangent_manifold_point.construct().to_dense()), atol=1e-5)
         assert np.allclose(back.to_numpy(dumb_point_combination.to_dense()),
                            back.to_numpy(wise_point_combination.construct().to_dense()), atol=1e-5)
+
+    def testMatrixGrad(self):
+        eye = back.ones((8, 8))
+        matrix = back.copy(eye)
+        eye = back.reshape(eye, (2, 2, 2, 2, 2, 2))
+        eye = back.transpose(eye, (0, 3, 1, 4, 2, 5))
+        eye = back.reshape(eye, (4, 4, 4))
+        eye = TuckerMatrix.from_dense(eye, (2, 2, 2), (2, 2, 2), eps=1e-7)
+        x = back.ones(8)
+        x = back.reshape(x, (2, 2, 2))
+        x_dense = back.reshape(x, (8,))
+
+        loss = lambda A: back.norm(A @ x) ** 2
+        loss_dense = lambda A: back.norm(A @ x_dense) ** 2
+
+        eucl_grad = back.grad(loss_dense, argnums=0)(matrix)
+        riem_grad, _ = TuckerRiemannian.grad(loss, eye)
+        riem_grad = riem_grad.construct()
+
+        riem_grad = riem_grad.to_dense()
+        riem_grad = back.reshape(riem_grad, (2, 2, 2, 2, 2, 2))
+        riem_grad = back.transpose(riem_grad, (0, 2, 4, 1, 3, 5))
+        riem_grad = back.reshape(riem_grad, (8, 8))
+
+        assert(np.allclose(back.to_numpy(eucl_grad), back.to_numpy(riem_grad.to_dense()), atol=1e-5))
 
