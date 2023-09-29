@@ -3,7 +3,7 @@ import numpy as np
 from unittest import TestCase
 
 from tucker_riemopt import backend as back
-from tucker_riemopt import SFTucker
+from tucker_riemopt import SFTucker, SFTuckerMatrix
 from tucker_riemopt import SFTuckerRiemannian
 
 
@@ -23,7 +23,7 @@ class RiemoptTest(TestCase):
     @staticmethod
     def project_on_tangent(Z, G, U, V):
         def unfold(X, i):
-            X = X.transpose([i] + list(range(i)) + list(range(i + 1, len(X.shape))))
+            X = back.transpose(X, [i] + list(range(i)) + list(range(i + 1, len(X.shape))))
             return X.reshape(X.shape[0], -1)
 
         def tucker(G, U, V, W):
@@ -31,19 +31,19 @@ class RiemoptTest(TestCase):
 
         dot_G = tucker(Z, U.T, U.T, V.T)
 
-        dot_V = tucker(Z, U.T, U.T, np.eye(V.shape[0]))
+        dot_V = tucker(Z, U.T, U.T, back.eye(V.shape[0]))
         G_2 = unfold(G, 2)
         dot_V = unfold(dot_V, 2) @ (G_2.T @ np.linalg.inv(G_2 @ G_2.T))
         dot_V = dot_V - V @ V.T @ dot_V
 
-        P = np.eye(U.shape[0]) - U @ U.T
-        Z_1 = np.einsum('abc,def,ad,bg,cf->ge', Z, G, U, P, V)
-        Z_2 = np.einsum('abc,def,ag,be,cf->gd', Z, G, P, U, V)
+        P = back.eye(U.shape[0]) - U @ U.T
+        Z_1 = back.einsum('abc,def,ad,bg,cf->ge', Z, G, U, P, V)
+        Z_2 = back.einsum('abc,def,ag,be,cf->gd', Z, G, P, U, V)
 
-        G_1 = np.einsum('aij,bij->ab', G, G)
-        G_2 = np.einsum('iaj,ibj->ab', G, G)
+        G_1 = back.einsum('aij,bij->ab', G, G)
+        G_2 = back.einsum('iaj,ibj->ab', G, G)
 
-        dot_U = (Z_1 + Z_2) @ np.linalg.inv(G_1 + G_2)
+        dot_U = back.tensor(back.to_numpy(Z_1 + Z_2) @ np.linalg.inv(G_1 + G_2))
         return tucker(dot_G, U, U, V) + \
             tucker(G, dot_U, U, V) + \
             tucker(G, U, dot_U, V) + \
@@ -121,4 +121,31 @@ class RiemoptTest(TestCase):
                            back.to_numpy(tangent_manifold_point.construct().to_dense()), atol=1e-5)
         assert np.allclose(back.to_numpy(dumb_point_combination.to_dense()),
                            back.to_numpy(wise_point_combination.construct().to_dense()), atol=1e-5)
+
+
+    def testMatrixGrad(self):
+        for num_shared_factors in [1, 3]:
+            eye = back.ones((8, 8))
+            matrix = back.copy(eye)
+            eye = back.reshape(eye, (2, 2, 2, 2, 2, 2))
+            eye = back.transpose(eye, (0, 3, 1, 4, 2, 5))
+            eye = back.reshape(eye, (4, 4, 4))
+            eye = SFTuckerMatrix.from_dense(eye, num_shared_factors, (2, 2, 2), (2, 2, 2), eps=1e-7)
+            x = back.ones(8)
+            x = back.reshape(x, (2, 2, 2))
+            x_dense = back.reshape(x, (8,))
+
+            loss = lambda A: back.norm(A @ x) ** 2
+            loss_dense = lambda A: back.norm(A @ x_dense) ** 2
+
+            eucl_grad = back.grad(loss_dense, argnums=0)(matrix)
+            riem_grad, _ = SFTuckerRiemannian.grad(loss, eye)
+            riem_grad = riem_grad.construct()
+
+            riem_grad = riem_grad.to_dense()
+            riem_grad = back.reshape(riem_grad, (2, 2, 2, 2, 2, 2))
+            riem_grad = back.transpose(riem_grad, (0, 2, 4, 1, 3, 5))
+            riem_grad = back.reshape(riem_grad, (8, 8))
+
+            assert(np.allclose(back.to_numpy(eucl_grad), back.to_numpy(riem_grad.to_dense()), atol=1e-5))
 

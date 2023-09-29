@@ -4,7 +4,7 @@ import numpy as np
 
 from typing import Union, List, Callable, Tuple
 
-from tucker_riemopt import SFTucker
+from tucker_riemopt import SFTucker, SFTuckerMatrix
 from tucker_riemopt import backend as back
 
 
@@ -45,6 +45,9 @@ class TangentVector:
             self.point.regular_factors[i], self.delta_regular_factors[i]
         ], axis=1) for i in range(self.point.dt)]
         shared_factor = back.concatenate([self.point.shared_factor, self.delta_shared_factor], axis=1)
+        if isinstance(self.point, SFTuckerMatrix):
+            return SFTuckerMatrix(grouped_core, regular_factors, self.point.num_shared_factors, shared_factor,
+                                  self.point.n, self.point.m)
         return SFTucker(grouped_core, regular_factors, self.point.num_shared_factors, shared_factor)
 
     def linear_comb(self, a: float = 1, b: float = 1, xi: Union["TangentVector", None] = None):
