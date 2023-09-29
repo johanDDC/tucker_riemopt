@@ -225,6 +225,8 @@ class PyTorchBackend(Backend, backend_name="pytorch"):
 
         def process_grad(elem):
             if type(elem) is list:
+                if len(elem) == 0:
+                    return []
                 if not type(elem[0]) is PyTorchBackend.type():
                     raise TypeError("Expected list of torch.tensor, not list of {}".format(type(elem[0])))
                 return grad_list(elem)
