@@ -165,7 +165,7 @@ class Tucker:
         """
         :return: sequence represents the shape of the Tucker tensor.
         """
-        return [self.factors[i].shape[0] for i in range(self.dt)] + [self.shared_factor.shape[0]] * self.ds
+        return [self.factors[i].shape[0] for i in range(self.ndim)]
 
     @property
     def rank(self) -> Sequence[int]:
