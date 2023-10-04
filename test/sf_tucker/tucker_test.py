@@ -5,6 +5,7 @@ from unittest import TestCase
 from tucker_riemopt import backend as back
 from tucker_riemopt.sf_tucker.sf_tucker import SFTucker
 
+
 class TuckerTensorTest(TestCase):
     n = 4
 
@@ -39,3 +40,13 @@ class TuckerTensorTest(TestCase):
         M = back.zeros((self.n, self.n), dtype=A.dtype)
         assert np.allclose(A.k_mode_product(0, M).to_dense(), Z)
         assert np.allclose(A.shared_modes_product(M).to_dense(), Z)
+
+    def testFromTucker(self):
+        from tucker_riemopt.tucker.tucker import Tucker
+        A = back.randn((10, 10, 10))
+        A_tucker = Tucker.from_dense(A)
+        A_sftucker = SFTucker.from_tucker(A_tucker)
+        assert np.allclose(back.to_numpy(A_sftucker.to_dense()), back.to_numpy(A), atol=1e-5)
+        for ds in [1, 2, 3]:
+            A_sftucker = SFTucker.from_tucker(A_tucker, ds)
+            assert np.allclose(back.to_numpy(A_sftucker.to_dense()), back.to_numpy(A), atol=1e-5)

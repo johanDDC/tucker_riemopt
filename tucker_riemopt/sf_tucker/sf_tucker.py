@@ -87,8 +87,46 @@ class SFTucker(Tucker):
         if ds > num_equal_modes:
             raise ValueError(f"ds cannot be larger then {num_equal_modes}.")
 
-
         return cls.__sf_hosvd(dense_tensor, ds, eps=eps)
+
+    @classmethod
+    def from_tucker(cls, tucker_tensor: Tucker, ds: Union[int, None] = None, eps=1e-14):
+        shape = tucker_tensor.shape
+        reversed_shape = shape[::-1]
+        num_equal_modes = 0
+        while num_equal_modes < len(shape) and reversed_shape[num_equal_modes] == shape[-1]:
+            num_equal_modes += 1
+        if ds is None:
+            ds = num_equal_modes
+        if ds > num_equal_modes:
+            raise ValueError(f"ds cannot be larger then {num_equal_modes}.")
+
+        dt = tucker_tensor.ndim - ds
+        core_letters = ascii_letters[:tucker_tensor.ndim]
+
+        U_concat = []
+        G_wav_shape = []
+        G_wav_slices = []
+        contract_letters = []
+        result_letters = list(core_letters[:dt])
+        for i in range(dt):
+            G_wav_shape.append(tucker_tensor.core.shape[i])
+            G_wav_slices.append(slice(0, tucker_tensor.rank[i]))
+        r_plus = 0
+        for i in range(ds):
+            U_concat.append(tucker_tensor.factors[dt + i])
+            r_plus += U_concat[-1].shape[1]
+            G_wav_slices.append(slice(i * tucker_tensor.rank[dt + i], (i + 1) * tucker_tensor.rank[dt + i]))
+            result_letters.append(ascii_letters[tucker_tensor.ndim+i])
+            contract_letters.append(result_letters[-1] + core_letters[dt + i])
+        U_concat = back.concatenate(U_concat, axis=1)
+        Q_u, R_u = back.qr(U_concat)
+        G_wav_shape += [r_plus] * ds
+        G_wav = back.zeros(G_wav_shape)
+        G_wav[tuple(G_wav_slices)] = tucker_tensor.core
+        core = back.einsum(f"{''.join(core_letters)},{','.join(contract_letters)}->{''.join(result_letters)}",
+                           G_wav, *([R_u] * ds))
+        return cls(core, tucker_tensor.factors[:dt], ds, Q_u)
 
     @property
     def ndim(self) -> int:
