@@ -113,10 +113,12 @@ class SFTucker(Tucker):
             G_wav_shape.append(tucker_tensor.core.shape[i])
             G_wav_slices.append(slice(0, tucker_tensor.rank[i]))
         r_plus = 0
+        r_cum = 0
         for i in range(ds):
             U_concat.append(tucker_tensor.factors[dt + i])
             r_plus += U_concat[-1].shape[1]
-            G_wav_slices.append(slice(i * tucker_tensor.rank[dt + i], (i + 1) * tucker_tensor.rank[dt + i]))
+            G_wav_slices.append(slice(r_cum, r_cum + tucker_tensor.rank[dt + i]))
+            r_cum += tucker_tensor.rank[dt + i]
             result_letters.append(ascii_letters[tucker_tensor.ndim+i])
             contract_letters.append(result_letters[-1] + core_letters[dt + i])
         U_concat = back.concatenate(U_concat, axis=1)
