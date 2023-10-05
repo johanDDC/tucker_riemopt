@@ -2,6 +2,7 @@ import warnings
 import itertools
 import numpy as np
 import typing
+
 try:
     import torch
 except ImportError as error:
@@ -92,9 +93,12 @@ class PyTorchBackend(Backend, backend_name="pytorch"):
     def all(tensor):
         return torch.sum(tensor != 0)
 
-    def transpose(self, tensor, axes=None):
-        axes = axes or list(range(self.ndim(tensor)))[::-1]
-        return tensor.permute(*axes)
+        def transpose(self, tensor, axes=None):
+            if axes is not None:
+                axes = axes
+            else:
+                axes = list(range(self.ndim(tensor)))[::-1]
+            return tensor.permute(*axes)
 
     @staticmethod
     def copy(tensor):
@@ -253,7 +257,6 @@ class PyTorchBackend(Backend, backend_name="pytorch"):
                         args[arg].grad = None
                 elif type(args[arg]) is list:
                     detach(args[arg], np.arange(0, len(args[arg])))
-
 
         def aux_func(*args):
             args = list(args)
