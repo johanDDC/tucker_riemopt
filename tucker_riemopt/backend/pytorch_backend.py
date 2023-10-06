@@ -93,12 +93,12 @@ class PyTorchBackend(Backend, backend_name="pytorch"):
     def all(tensor):
         return torch.sum(tensor != 0)
 
-        def transpose(self, tensor, axes=None):
-            if axes is not None:
-                axes = axes
-            else:
-                axes = list(range(self.ndim(tensor)))[::-1]
-            return tensor.permute(*axes)
+    def transpose(self, tensor, axes=None):
+        if axes is not None:
+            axes = axes
+        else:
+            axes = list(range(self.ndim(tensor)))[::-1]
+        return tensor.permute(*axes)
 
     @staticmethod
     def copy(tensor):
