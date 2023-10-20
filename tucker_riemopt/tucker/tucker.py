@@ -1,4 +1,5 @@
 import numpy as np
+import warnings
 
 from typing import Union, Sequence, List
 from dataclasses import dataclass, field
@@ -73,10 +74,17 @@ class Tucker:
         def truncate_unfolding(u, s, i):
             if ml_rank is None:
                 eps_svd = eps / np.sqrt(d) * back.sqrt(s @ s)
+                if (eps_svd == float("inf")).any():
+                    warnings.warn("You are probably dealing with ill-conditioned tensors. Computations may be numericaly unstable.")
+                    s_max = s.max()
+                    s_new = s / s_max
+                    eps_svd = eps / np.sqrt(d) * s_max * back.sqrt(s_new @ s_new)
                 rank = back.cumsum(back.flip(s))
                 rank = back.flip(~(rank <= eps_svd))
             else:
-                rank = ml_rank[i]
+                max_rank = ml_rank[i]
+                rank = back.tensor([False] * u.shape[1], dtype=bool)
+                rank[:max_rank] = True
             return u[:, rank]
 
         modes = list(np.arange(0, d))
@@ -279,7 +287,7 @@ class Tucker:
         for i in range(self.ndim):
             factors[i], intermediate_factors[i] = back.qr(self.factors[i])
         intermediate_core = Tucker(self.core, intermediate_factors)
-        intermediate_core = self._hosvd(intermediate_core.to_dense(), eps=eps)
+        intermediate_core = self._hosvd(intermediate_core.to_dense(), ml_rank=max_rank, eps=eps)
 
         if max_rank is None:
             max_rank = intermediate_core.rank
