@@ -221,7 +221,7 @@ class Tucker:
         factors = []
         for i in range(self.ndim):
             contraction = back.einsum('ia,ib->iab', self.factors[i], other.factors[i])
-            contraction = back.reshape(contraction, (self.factors[i].shape[0], -1), order="F")
+            contraction = back.reshape(contraction, (self.factors[i].shape[0], -1), order="C")
             factors.append(contraction)
         return Tucker(core, factors)
 
