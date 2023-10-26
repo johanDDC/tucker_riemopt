@@ -1,6 +1,7 @@
 import numpy as np
+import warnings
 
-from typing import List, Union, Sequence, Dict
+from typing import Union, Sequence, List
 from dataclasses import dataclass, field
 from string import ascii_letters
 from copy import deepcopy
@@ -16,6 +17,11 @@ ML_rank = Union[int, Sequence[int]]
 class Tucker:
     core: back.type() = field(default_factory=back.tensor)
     factors: List[back.type()] = field(default_factory=list)
+    """
+    Tucker tensor factorisation. We represent Tucker tensor as SF-Tucker tensor with no shared factors. One may note,
+    that more valid formulation is to represent Tucker as SF-Tucker with one shared factor, but we do not employ
+    this approach for the sake of the convenient coding.
+    """
 
     @staticmethod
     def __HOOI(sparse_tensor, sparse_tucker, contraction_dict, maxiter):
@@ -50,68 +56,64 @@ class Tucker:
             iteration += 1
 
         return sparse_tucker
-
+    
     @classmethod
-    def full2tuck(cls, T: back.type(), eps=1e-14):
+    def _hosvd(cls, dense_tensor: back.type(), ml_rank=None, eps=1e-14):
         """
-            Convert full tensor T to Tucker by applying HOSVD algorithm.
+        Converts dense tensor into Tucker representation.
+        .. math:: (1): \quad \|A - T_{optimal}\|_F = \eps \|A\|_F
 
-            Parameters
-            ----------
-            T: backend tensor type
-                Tensor in dense format
-
-            max_rank: int, Sequence[int] or None
-
-                - If a number, than defines the maximal `rank` of the result.
-
-                - If a list of numbers, than `max_rank` length should be d
-                  (number of dimensions) and `max_rank[i]`
-                  defines the (i)-th `rank` of the result.
-
-                  The following two versions are equivalent
-
-                  - ``max_rank = r``
-
-                  - ``max_rank = [r] * d``
-
-            eps: float
-
-                - If `max_rank` is not provided, then constructed tensor would be guarantied to be `epsilon`-close to `T`
-                  in terms of relative Frobenius error:
-
-                    `||T - A_tucker||_F / ||T||_F <= eps`
-
-                - If `max_rank` is provided, than this parameter is ignored
+        :param ml_rank: desired ML-rank. If `None`, then parameter `eps` must be provided.
+        :param eps: if `ml_rank` is `None`, then `eps` represents precision of approximation as specified at (1).
+         If `ml_rank` is not `None`, then ignored.
+        :return: Tucker representation of the provided dense tensor.
         """
-        if eps < 0:
-            raise ValueError("eps should be greater or equal than 0")
-        d = len(T.shape)
+        d = len(dense_tensor.shape)
+        tensor_letters = ascii_letters[:d]
 
-        def eps_trunctation(unfolding_svd):
-            u, s, _ = unfolding_svd
-            eps_svd = eps / np.sqrt(d) * back.sqrt(s @ s)
-            cumsum = back.cumsum(back.flip(s))
-            cumsum = back.flip(~(cumsum <= eps_svd))
-            return u[:, cumsum]
+        def truncate_unfolding(u, s, i):
+            if ml_rank is None:
+                eps_svd = eps / np.sqrt(d) * back.sqrt(s @ s)
+                if (eps_svd == float("inf")).any():
+                    warnings.warn("You are probably dealing with ill-conditioned tensors. Computations may be numericaly unstable.")
+                    s_max = s.max()
+                    s_new = s / s_max
+                    eps_svd = eps / np.sqrt(d) * s_max * back.sqrt(s_new @ s_new)
+                rank = back.cumsum(back.flip(s))
+                rank = back.flip(~(rank <= eps_svd))
+            else:
+                max_rank = ml_rank[i]
+                rank = back.tensor([False] * u.shape[1], dtype=bool)
+                rank[:max_rank] = True
+            return u[:, rank]
 
         modes = list(np.arange(0, d))
         factors = []
-        tensor_letters = ascii_letters[:d]
-        factor_letters = ""
-        core_letters = ""
+        factor_letters = []
         for i in range(d):
-            unfolding = back.transpose(T, [modes[i], *(modes[:i] + modes[i + 1:])])
-            unfolding = back.reshape(unfolding, (T.shape[i], -1), order="F")
-            unfolding_svd = back.svd(unfolding, full_matrices=False)
-            u = eps_trunctation(unfolding_svd)
+            unfolding = back.transpose(dense_tensor, [modes[i], *(modes[:i] + modes[i + 1:])])
+            unfolding = back.reshape(unfolding, (dense_tensor.shape[i], -1), order="F")
+            u, s, _ = back.svd(unfolding, full_matrices=False)
+            u = truncate_unfolding(u, s, i)
             factors.append(u)
-            factor_letters += f"{ascii_letters[i]}{ascii_letters[d + i]},"
-            core_letters += ascii_letters[d + i]
+            factor_letters.append(f"{ascii_letters[i]}{ascii_letters[d + i]}")
 
-        einsum_str = tensor_letters + "," + factor_letters[:-1] + "->" + core_letters
-        core = back.einsum(einsum_str, T, *factors)
+        core_letters = ascii_letters[d: 2 * d]
+        einsum_str = tensor_letters + "," + ",".join(factor_letters) + "->" + core_letters
+        core = back.einsum(einsum_str, dense_tensor, *factors)
         return cls(core, factors)
+
+    @classmethod
+    def from_dense(cls, dense_tensor: back.type(), eps=1e-14):
+        """
+        Converts dense tensor into Tucker representation.
+        .. math::
+            (1): \quad \|A - T_{optimal}\|_F = \eps \|A\|_F
+
+        :param eps: precision of approximation as specified at (1).
+        :return: Tucker representation of the provided dense tensor.
+        """
+        return cls._hosvd(dense_tensor, eps=eps)
 
     @classmethod
     def sparse2tuck(cls, sparse_tensor: SparseTensor, max_rank: ML_rank = None, maxiter: Union[int, None] = 5):
@@ -160,43 +162,44 @@ class Tucker:
         return sparse_tucker
 
     @property
-    def shape(self):
+    def ndim(self) -> int:
         """
-            Get the tuple representing the shape of Tucker tensor.
-        """
-        return tuple([factor.shape[0] for factor in self.factors])
-
-    @property
-    def rank(self):
-        """
-            Get multilinear rank of the Tucker tensor.
-            
-            Returns
-            -------
-            rank: int or Sequence[int]
-                tuple, represents multilinear rank of tensor
-        """
-        return self.core.shape
-
-    @property
-    def ndim(self):
-        """
-            Get the number of dimensions of the Tucker tensor.
+        :return: dimensionality of the tensor.
         """
         return len(self.core.shape)
 
     @property
-    def dtype(self):
+    def shape(self) -> Sequence[int]:
         """
-            Get dtype of the elements in Tucker tensor.
+        :return: sequence represents the shape of the Tucker tensor.
+        """
+        return [self.factors[i].shape[0] for i in range(self.ndim)]
+
+    @property
+    def rank(self) -> Sequence[int]:
+        """
+        Get ML-rank of the Tucker tensor.
+
+        :return: sequence represents the ML-rank of tensor.
+        """
+        return self.core.shape
+
+    @property
+    def dtype(self) -> type:
+        """
+        Get dtype of the elements in the Tucker tensor.
+
+        :return: dtype.
         """
         return self.core.dtype
 
-    def __add__(self, other):
+    def __add__(self, other: "Tucker"):
         """
-            Add two `Tucker` tensors. Result rank is doubled.
+        Add two `Tucker` tensors. The ML-rank of the result is the sum of ML-ranks of the operands.
+
+        :param other: `Tucker` tensor.
+        :return: `Tucker` tensor.
         """
-        factors = []
         r1 = self.rank
         r2 = other.rank
         padded_core1 = back.pad(self.core, [(0, r2[j]) if j > 0 else (0, 0) for j in range(self.ndim)],
@@ -204,34 +207,39 @@ class Tucker:
         padded_core2 = back.pad(other.core, [(r1[j], 0) if j > 0 else (0, 0) for j in range(other.ndim)],
                                 mode="constant", constant_values=0)
         core = back.concatenate((padded_core1, padded_core2), axis=0)
-        for i in range(self.ndim):
-            factors.append(back.concatenate((self.factors[i], other.factors[i]), axis=1))
-
+        factors = [back.concatenate((self.factors[i], other.factors[i]), axis=1) for i in range(self.ndim)]
         return Tucker(core, factors)
 
-    def __mul__(self, other):
+    def __mul__(self, other: "Tucker"):
         """
-            Elementwise multiplication of two `Tucker` tensors.
+        Elementwise multiplication of two `Tucker` tensors.
+
+        :param other: `Tucker` tensor.
+        :return: `Tucker` tensor.
         """
         core = back.kron(self.core, other.core)
         factors = []
         for i in range(self.ndim):
-            factors.append(back.einsum('ia,ib->iab', self.factors[i], other.factors[i]) \
-                           .reshape(self.factors[i].shape[0], -1))
-
+            contraction = back.einsum('ia,ib->iab', self.factors[i], other.factors[i])
+            contraction = back.reshape(contraction, (self.factors[i].shape[0], -1), order="C")
+            factors.append(contraction)
         return Tucker(core, factors)
 
-    def __rmul__(self, a):
+    def __rmul__(self, a: float):
         """
-            Elementwise multiplication of `Tucker` tensor by scalar.
+        Elementwise multiplication of `Tucker` tensor by scalar.
+
+        :param a: scalar value.
+        :return: `Tucker` tensor.
         """
-        new_tensor = deepcopy(self)
-        return Tucker(a * new_tensor.core, new_tensor.factors)
+        return Tucker(a * self.core, self.factors)
+        # new_tensor = deepcopy(self)
+        # return Tucker(a * new_tensor.core, new_tensor.factors)
 
     def __neg__(self):
         return (-1) * self
 
-    def __sub__(self, other):
+    def __sub__(self, other: "Tucker"):
         other = -other
         return self + other
 
@@ -259,141 +267,110 @@ class Tucker:
 
     def round(self, max_rank: ML_rank = None, eps=1e-14):
         """
-        HOSVD rounding procedure, returns a Tucker with smaller ranks.
+        Perform rounding procedure. The `Tucker` tensor will be approximated by `Tucker` tensor with rank
+        at most `max_rank`.
+        .. math::
+            (1): \quad \|A - T_{optimal}\|_F = \eps \|A\|_F
 
-        Parameters
-        ----------
-            max_rank: int, Sequence[int] or None
-
-                - If a number, than defines the maximal `rank` of the result.
-
-                - If a list of numbers, than `max_rank` length should be d
-                  (number of dimensions) and `max_rank[i]`
-                  defines the (i)-th `rank` of the result.
-
-                  The following two versions are equivalent
-
-                  - ``max_rank = r``
-
-                  - ``max_rank = [r] * d``
-
-            eps: float
-
-                - If `max_rank` is not provided, then result would be guarantied to be `epsilon`-close to unrounded tensor
-                  in terms of relative Frobenius error:
-
-                    `||A - A_round||_F / ||A||_F <= eps`
-
-                - If `max_rank` is provided, than this parameter is ignored
+        :param max_rank: maximum possible `ML-rank` of the approximation. Expects a sequence of integers,
+         but if a single number is provided, it will be treated as a sequence with all components equal. If
+         `None` provided, will be performed approximation with precision `eps`.
+        :param eps: precision of approximation as specified at (1).
+        :return: `Tucker` tensor.
         """
 
         if eps < 0:
             raise ValueError("eps should be greater or equal than 0")
+
         factors = [None] * self.ndim
         intermediate_factors = [None] * self.ndim
         for i in range(self.ndim):
             factors[i], intermediate_factors[i] = back.qr(self.factors[i])
+        intermediate_core = Tucker(self.core, intermediate_factors)
+        intermediate_core = self._hosvd(intermediate_core.to_dense(), ml_rank=max_rank, eps=eps)
 
-        intermediate_tensor = Tucker(self.core, intermediate_factors)
-        intermediate_tensor = Tucker.full2tuck(intermediate_tensor.full(), eps)
         if max_rank is None:
-            max_rank = intermediate_tensor.rank
+            max_rank = intermediate_core.rank
         elif type(max_rank) is int:
             max_rank = [max_rank] * self.ndim
-        core = intermediate_tensor.core
+
         rank_slices = []
         for i in range(self.ndim):
             rank_slices.append(slice(0, max_rank[i]))
-            factors[i] = factors[i] @ intermediate_tensor.factors[i]
+            factors[i] = factors[i] @ intermediate_core.factors[i]
             factors[i] = factors[i][:, :max_rank[i]]
-        return Tucker(core[tuple(rank_slices)], factors)
+        return Tucker(intermediate_core.core[tuple(rank_slices)], factors)
 
-    def flat_inner(self, other):
+    def flat_inner(self, other: "Tucker") -> float:
         """
-            Calculate inner product of given `Tucker` tensors.
+        Calculate inner product of given `Tucker` tensors.
+
+        :param other: `Tucker` tensor.
+        :return: result of inner product.
         """
-        factors = []
-        transposed_factors = []
         core_letters = ascii_letters[:self.ndim]
+        rev_letters = ascii_letters[self.ndim:][::-1]
+
         factors_letters = []
         transposed_letters = []
         intermediate_core_letters = []
-        rev_letters = ascii_letters[self.ndim:][::-1]
         for i in range(1, self.ndim + 1):
-            j = i - 1
-            factors.append(self.factors[j])
-            factors_letters.append(ascii_letters[self.ndim + i] + core_letters[j])
-            transposed_factors.append(other.factors[j].T)
-            transposed_letters.append(rev_letters[i] + ascii_letters[self.ndim + i])
+            factors_letters.append(f"{ascii_letters[self.ndim + i]}{core_letters[i - 1]}")
+            transposed_letters.append(f"{ascii_letters[self.ndim + i]}{rev_letters[i]}")
             intermediate_core_letters.append(rev_letters[i])
 
         source = ",".join([core_letters] + factors_letters + transposed_letters)
         intermediate_core = back.einsum(source + "->" + "".join(intermediate_core_letters),
-                                        self.core, *factors, *transposed_factors)
+                                        self.core, *self.factors, *other.factors)
         return (intermediate_core * other.core).sum()
 
-    def k_mode_product(self, k: int, mat: back.type()):
+    def k_mode_product(self, k: int, matrix: back.type()):
         """
-        K-mode tensor-matrix product.
+        k-mode tensor-matrix contraction.
 
-        Parameters
-        ----------
-        k: int
-            mode id from 0 to ndim - 1
-        mat: matrix of backend tensor type
-            matrix with which Tucker tensor is contracted by k mode
+        :param k: from 0 to d-1.
+        :param matrix: must contain `self.rank[k]` columns.
+        :return: `Tucker` tensor.
         """
         if k < 0 or k >= self.ndim:
-            raise ValueError(f"k shoduld be from 0 to {self.ndim - 1}")
-        new_tensor = deepcopy(self)
-        new_tensor.factors[k] = mat @ new_tensor.factors[k]
-        return new_tensor
+            raise ValueError(f"k should be from 0 to {self.ndim - 1}")
 
-    def norm(self, qr_based: bool = False):
+        new_factors = self.factors[:k] + [matrix @ self.factors[k]] + self.factors[k + 1:]
+        # new_tensor = deepcopy(self)
+        # new_tensor.factors[k] = matrix @ new_tensor.factors[k]
+        # return new_tensor
+        return Tucker(self.core, new_factors)
+
+    def norm(self, qr_based: bool = False) -> float:
         """
-        Frobenius norm of `Tucker`.
+        Frobenius norm of `Tucker` tensor.
 
-        Parameters
-        ----------
-        qr_based: bool
-            whether to use stable QR-based implementation of norm, which is not differentiable,
-            or unstable but differentiable implementation based on inner product. By default differentiable implementation
-            is used
-        Returns
-        -------
-        F-norm: float
-            non-negative number which is the Frobenius norm of `Tucker` tensor
+        :param qr_based: whether to use stable QR-based implementation of norm, which is not differentiable,
+            or unstable but differentiable implementation based on inner product. By default, differentiable
+            implementation used.
+        :return: non-negative number which is the Frobenius norm of `Tucker` tensor.
         """
         if qr_based:
-            core_factors = []
-            for i in range(self.ndim):
-                core_factors.append(back.qr(self.factors[i])[1])
-
+            core_factors = [back.qr(self.factors[i])[1] for i in range(self.ndim)]
             new_tensor = Tucker(self.core, core_factors)
-            new_tensor = new_tensor.full()
+            new_tensor = new_tensor.to_dense()
             return back.norm(new_tensor)
 
         return back.sqrt(self.flat_inner(self))
 
-    def full(self):
+    def to_dense(self) -> back.type():
         """
-            Dense representation of `Tucker`.
+        Convert `Tucker` tensor to dense representation.
+
+        :return: dense d-dimensional representation of `Tucker` tensor.
         """
         core_letters = ascii_letters[:self.ndim]
-        factor_letters = ""
-        tensor_letters = ""
-        for i in range(self.ndim):
-            factor_letters += f"{ascii_letters[self.ndim + i]}{ascii_letters[i]},"
-            tensor_letters += ascii_letters[self.ndim + i]
-
-        einsum_str = core_letters + "," + factor_letters[:-1] + "->" + tensor_letters
-
+        factor_letters = [f"{ascii_letters[self.ndim + i]}{ascii_letters[i]}" for i in range(self.ndim)]
+        tensor_letters = ascii_letters[self.ndim:2 * self.ndim]
+        einsum_str = core_letters + "," + ",".join(factor_letters) + "->" + tensor_letters
         return back.einsum(einsum_str, self.core, *self.factors)
 
     def __deepcopy__(self, memodict={}):
         new_core = back.copy(self.core)
         new_factors = [back.copy(factor) for factor in self.factors]
         return self.__class__(new_core, new_factors)
-
-
-TangentVector = Tucker

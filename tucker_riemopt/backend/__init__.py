@@ -38,7 +38,7 @@ class BackendManager(types.ModuleType):
     _attributes = ["type", "int64", "int32", "float64", "float32",
                    "complex128", "complex64", "SVD_FUNS", "index", "backend_name"]
     available_backend_names = ["pytorch", "jax"]
-    _default_backend = "jax"
+    _default_backend = "pytorch"
     _loaded_backends = dict()
     _backend = None
     _THREAD_LOCAL_DATA = threading.local()

@@ -10,8 +10,6 @@ setup(name='tucker_riemopt',
       packages=['tucker_riemopt'],
       install_requires=[
           'numpy',
-          'jax',
-          'flax',
           'opt_einsum',
           'scipy'
       ],

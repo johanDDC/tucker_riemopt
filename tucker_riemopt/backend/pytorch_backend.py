@@ -2,6 +2,9 @@ import warnings
 import itertools
 import numpy as np
 import typing
+
+from string import ascii_letters
+
 try:
     import torch
 except ImportError as error:
@@ -30,7 +33,7 @@ class PyTorchBackend(Backend, backend_name="pytorch"):
                 "requires_grad": tensor.requires_grad}
 
     @staticmethod
-    def tensor(data, dtype=torch.float64, device="cpu", requires_grad=False):
+    def tensor(data, dtype=torch.float32, device="cpu", requires_grad=False):
         if isinstance(data, np.ndarray):
             data = data.copy()
         return torch.tensor(data, dtype=dtype, device=device, requires_grad=requires_grad)
@@ -93,7 +96,10 @@ class PyTorchBackend(Backend, backend_name="pytorch"):
         return torch.sum(tensor != 0)
 
     def transpose(self, tensor, axes=None):
-        axes = axes or list(range(self.ndim(tensor)))[::-1]
+        if axes is not None:
+            axes = axes
+        else:
+            axes = list(range(self.ndim(tensor)))[::-1]
         return tensor.permute(*axes)
 
     @staticmethod
@@ -225,6 +231,8 @@ class PyTorchBackend(Backend, backend_name="pytorch"):
 
         def process_grad(elem):
             if type(elem) is list:
+                if len(elem) == 0:
+                    return []
                 if not type(elem[0]) is PyTorchBackend.type():
                     raise TypeError("Expected list of torch.tensor, not list of {}".format(type(elem[0])))
                 return grad_list(elem)
@@ -251,7 +259,6 @@ class PyTorchBackend(Backend, backend_name="pytorch"):
                         args[arg].grad = None
                 elif type(args[arg]) is list:
                     detach(args[arg], np.arange(0, len(args[arg])))
-
 
         def aux_func(*args):
             args = list(args)
@@ -322,6 +329,19 @@ class PyTorchBackend(Backend, backend_name="pytorch"):
     def lu_solve(lu_pivots, B, left=True):
         return torch.linalg.lu_solve(lu_pivots[0], lu_pivots[1], B, left=left)
 
+    @staticmethod
+    def kron(a, b):
+        a_letters = ascii_letters[:a.ndim]
+        b_letters = ascii_letters[a.ndim:a.ndim + b.ndim]
+        res_letters = []
+        res_shape = []
+        for i in range(a.ndim):
+            res_letters.append(a_letters[i] + b_letters[i])
+            res_shape.append(a.shape[i] * b.shape[i])
+        res = PyTorchBackend.einsum(f"{a_letters},{b_letters}->{''.join(res_letters)}", a, b)
+        res = PyTorchBackend.reshape(res, res_shape )
+        return res
+
 
 for name in ["float64", "float32", "int64", "int32", "complex128", "complex64",
              "is_tensor", "ones", "zeros", "any", "trace", "count_nonzero",
@@ -335,8 +355,5 @@ if LooseVersion(torch.__version__) < LooseVersion("1.8.0"):
     PyTorchBackend.register_method("qr", getattr(torch, "qr"))
 
 else:
-    for name in ["kron"]:
-        PyTorchBackend.register_method(name, getattr(torch, name))
-
     for name in ["solve", "qr", "svd", "eigh"]:
         PyTorchBackend.register_method(name, getattr(torch.linalg, name))
