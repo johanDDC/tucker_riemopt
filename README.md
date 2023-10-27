@@ -1,16 +1,14 @@
 # Tucker Riemopt
 
-Python implementation of the Tucker toolbox. Package implements interfaces
-for interacting with tensors of Tucker [[1]]() and SF-Tucker [[2]]() format. 
-Also package provides the main components for implementing first-order 
-methods of the Riemannian optimization on the manifolds of tensors of
-fixed Tucker rank or fixed SF-Tucker rank. For example, it offers a 
-method for efficiently computing the Riemannian gradient of any smooth
-function via automatic differentiation.
+Python implementation of the Tucker toolbox. Package allows users to manipulate
+tensors in Tucker and SF-Tucker [[1]]() formats. It also provides tools 
+for implementing first-order optimization methods of the Riemannian 
+optimization on the manifolds of tensors of fixed Tucker rank or fixed SF-Tucker rank.
+For instance, package implements a method for efficiently computing the Riemannian
+gradient of any smooth function via automatic differentiation.
 
-Package supports several computation frameworks: PyTorch and JAX.
-Additional computational frameworks can be added using convenient interface
-provided by the package.
+The library is compatible with several computation frameworks, such as PyTorch and
+JAX, and can be easily integrated with other frameworks.
 ## Installation
 NumPy, SciPy, PyTorch and [opt-einsum](https://pypi.org/project/opt-einsum/)
 are required for installation. Additionally, you need to install your special
