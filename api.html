@@ -1,0 +1,1278 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>API &#8212; tucker_riemopt 1.0.0 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "light";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=c5ced968eda925caa686" rel="stylesheet" />
+<link href="_static/styles/bootstrap.css?digest=c5ced968eda925caa686" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=c5ced968eda925caa686" rel="stylesheet" />
+
+  
+  <link href="_static/vendor/fontawesome/6.1.2/css/all.min.css?digest=c5ced968eda925caa686" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.1.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.1.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.1.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" href="_static/styles/sphinx-book-theme.css?digest=14f4ca6b54d191a8c7657f6c759bf11a5fb86285" type="text/css" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=c5ced968eda925caa686" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=c5ced968eda925caa686" />
+  <script src="_static/vendor/fontawesome/6.1.2/js/all.min.js?digest=c5ced968eda925caa686"></script>
+
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=902d9fbd"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="_static/scripts/sphinx-book-theme.js?digest=5a5c038af52cf7bc1a1ec88eea08e6366ee68824"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'api';</script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Installation" href="main.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>
+    Back to top
+  </button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          name="__primary"
+          id="__primary"/>
+  <label class="overlay overlay-primary" for="__primary"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          name="__secondary"
+          id="__secondary"/>
+  <label class="overlay overlay-secondary" for="__secondary"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+  
+    <nav class="bd-header navbar navbar-expand-lg bd-navbar">
+    </nav>
+  
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+  
+
+<a class="navbar-brand logo" href="index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">tucker_riemopt 1.0.0 documentation</p>
+  
+</a></div>
+        <div class="sidebar-primary-item"><nav class="bd-links" id="bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="main.html">Installation</a></li>
+
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">API</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><label class="sidebar-toggle primary-toggle btn btn-sm" for="__primary" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</label></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="_sources/api.rst" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.rst</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script>
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<label class="sidebar-toggle secondary-toggle btn btn-sm" for="__secondary"title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</label>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>API</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker">Tucker</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#module-tucker_riemopt.tucker.tucker">Base interface</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.tucker.tucker.Tucker"><code class="docutils literal notranslate"><span class="pre">Tucker</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.tucker.tucker.Tucker.dtype"><code class="docutils literal notranslate"><span class="pre">Tucker.dtype</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.tucker.tucker.Tucker.flat_inner"><code class="docutils literal notranslate"><span class="pre">Tucker.flat_inner()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.tucker.tucker.Tucker.from_dense"><code class="docutils literal notranslate"><span class="pre">Tucker.from_dense()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.tucker.tucker.Tucker.k_mode_product"><code class="docutils literal notranslate"><span class="pre">Tucker.k_mode_product()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.tucker.tucker.Tucker.ndim"><code class="docutils literal notranslate"><span class="pre">Tucker.ndim</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.tucker.tucker.Tucker.norm"><code class="docutils literal notranslate"><span class="pre">Tucker.norm()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.tucker.tucker.Tucker.rank"><code class="docutils literal notranslate"><span class="pre">Tucker.rank</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.tucker.tucker.Tucker.round"><code class="docutils literal notranslate"><span class="pre">Tucker.round()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.tucker.tucker.Tucker.shape"><code class="docutils literal notranslate"><span class="pre">Tucker.shape</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.tucker.tucker.Tucker.sparse2tuck"><code class="docutils literal notranslate"><span class="pre">Tucker.sparse2tuck()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.tucker.tucker.Tucker.to_dense"><code class="docutils literal notranslate"><span class="pre">Tucker.to_dense()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#module-tucker_riemopt.tucker.matrix">Tucker matrix</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.tucker.matrix.TuckerMatrix"><code class="docutils literal notranslate"><span class="pre">TuckerMatrix</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.tucker.matrix.TuckerMatrix.from_dense"><code class="docutils literal notranslate"><span class="pre">TuckerMatrix.from_dense()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#module-tucker_riemopt.tucker.riemannian">Riemannian</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.tucker.riemannian.TangentVector"><code class="docutils literal notranslate"><span class="pre">TangentVector</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.tucker.riemannian.TangentVector.construct"><code class="docutils literal notranslate"><span class="pre">TangentVector.construct()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.tucker.riemannian.TangentVector.group_cores"><code class="docutils literal notranslate"><span class="pre">TangentVector.group_cores()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.tucker.riemannian.TangentVector.linear_comb"><code class="docutils literal notranslate"><span class="pre">TangentVector.linear_comb()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.tucker.riemannian.grad"><code class="docutils literal notranslate"><span class="pre">grad()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.tucker.riemannian.project"><code class="docutils literal notranslate"><span class="pre">project()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sf-tucker">SF-Tucker</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">Base interface</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.sf_tucker.sf_tucker.SFTucker"><code class="docutils literal notranslate"><span class="pre">SFTucker</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.sf_tucker.sf_tucker.SFTucker.ds"><code class="docutils literal notranslate"><span class="pre">SFTucker.ds</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.sf_tucker.sf_tucker.SFTucker.dt"><code class="docutils literal notranslate"><span class="pre">SFTucker.dt</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.sf_tucker.sf_tucker.SFTucker.dtype"><code class="docutils literal notranslate"><span class="pre">SFTucker.dtype</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.sf_tucker.sf_tucker.SFTucker.flat_inner"><code class="docutils literal notranslate"><span class="pre">SFTucker.flat_inner()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.sf_tucker.sf_tucker.SFTucker.from_dense"><code class="docutils literal notranslate"><span class="pre">SFTucker.from_dense()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.sf_tucker.sf_tucker.SFTucker.from_tucker"><code class="docutils literal notranslate"><span class="pre">SFTucker.from_tucker()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.sf_tucker.sf_tucker.SFTucker.k_mode_product"><code class="docutils literal notranslate"><span class="pre">SFTucker.k_mode_product()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.sf_tucker.sf_tucker.SFTucker.ndim"><code class="docutils literal notranslate"><span class="pre">SFTucker.ndim</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.sf_tucker.sf_tucker.SFTucker.norm"><code class="docutils literal notranslate"><span class="pre">SFTucker.norm()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.sf_tucker.sf_tucker.SFTucker.rank"><code class="docutils literal notranslate"><span class="pre">SFTucker.rank</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.sf_tucker.sf_tucker.SFTucker.regular_factors"><code class="docutils literal notranslate"><span class="pre">SFTucker.regular_factors</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.sf_tucker.sf_tucker.SFTucker.round"><code class="docutils literal notranslate"><span class="pre">SFTucker.round()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.sf_tucker.sf_tucker.SFTucker.shape"><code class="docutils literal notranslate"><span class="pre">SFTucker.shape</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.sf_tucker.sf_tucker.SFTucker.shared_modes_product"><code class="docutils literal notranslate"><span class="pre">SFTucker.shared_modes_product()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.sf_tucker.sf_tucker.SFTucker.to_dense"><code class="docutils literal notranslate"><span class="pre">SFTucker.to_dense()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#module-tucker_riemopt.sf_tucker.matrix">SF-Tucker matrix</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.sf_tucker.matrix.SFTuckerMatrix"><code class="docutils literal notranslate"><span class="pre">SFTuckerMatrix</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.sf_tucker.matrix.SFTuckerMatrix.from_dense"><code class="docutils literal notranslate"><span class="pre">SFTuckerMatrix.from_dense()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">Riemannian</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.sf_tucker.riemannian.TangentVector"><code class="docutils literal notranslate"><span class="pre">TangentVector</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.sf_tucker.riemannian.TangentVector.construct"><code class="docutils literal notranslate"><span class="pre">TangentVector.construct()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.sf_tucker.riemannian.TangentVector.group_cores"><code class="docutils literal notranslate"><span class="pre">TangentVector.group_cores()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.sf_tucker.riemannian.TangentVector.linear_comb"><code class="docutils literal notranslate"><span class="pre">TangentVector.linear_comb()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.sf_tucker.riemannian.grad"><code class="docutils literal notranslate"><span class="pre">grad()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.sf_tucker.riemannian.project"><code class="docutils literal notranslate"><span class="pre">project()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article" role="main">
+                  
+  <section id="api">
+<h1><a class="toc-backref" href="#id3" role="doc-backlink">API</a><a class="headerlink" href="#api" title="Permalink to this heading">#</a></h1>
+<p>Here you may find description of functions and methods avaliable in <cite>tucker_riemopt</cite>.</p>
+<nav class="contents" id="table-of-contents">
+<p class="topic-title">Table of Contents</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#api" id="id3">API</a></p>
+<ul>
+<li><p><a class="reference internal" href="#tucker" id="id4">Tucker</a></p>
+<ul>
+<li><p><a class="reference internal" href="#module-tucker_riemopt.tucker.tucker" id="id5">Base interface</a></p></li>
+<li><p><a class="reference internal" href="#module-tucker_riemopt.tucker.matrix" id="id6">Tucker matrix</a></p></li>
+<li><p><a class="reference internal" href="#module-tucker_riemopt.tucker.riemannian" id="id7">Riemannian</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#sf-tucker" id="id8">SF-Tucker</a></p>
+<ul>
+<li><p><a class="reference internal" href="#id1" id="id9">Base interface</a></p></li>
+<li><p><a class="reference internal" href="#module-tucker_riemopt.sf_tucker.matrix" id="id10">SF-Tucker matrix</a></p></li>
+<li><p><a class="reference internal" href="#id2" id="id11">Riemannian</a></p></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+<section id="tucker">
+<h2><a class="toc-backref" href="#id4" role="doc-backlink">Tucker</a><a class="headerlink" href="#tucker" title="Permalink to this heading">#</a></h2>
+<section id="module-tucker_riemopt.tucker.tucker">
+<span id="base-interface"></span><h3><a class="toc-backref" href="#id5" role="doc-backlink">Base interface</a><a class="headerlink" href="#module-tucker_riemopt.tucker.tucker" title="Permalink to this heading">#</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="tucker_riemopt.tucker.tucker.Tucker">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tucker_riemopt.tucker.tucker.</span></span><span class="sig-name descname"><span class="pre">Tucker</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">core:</span> <span class="pre">~torch.Tensor</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">factors:</span> <span class="pre">~typing.List[~torch.Tensor]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tucker_riemopt.tucker.tucker.Tucker" title="Permalink to this definition">#</a></dt>
+<dd><p>Tucker tensor factorisation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>core</strong> – The core tensor of the decomposition.</p></li>
+<li><p><strong>factors</strong> – The list of factors of the decomposition.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="tucker_riemopt.tucker.tucker.Tucker.dtype">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">dtype</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">type</span></em><a class="headerlink" href="#tucker_riemopt.tucker.tucker.Tucker.dtype" title="Permalink to this definition">#</a></dt>
+<dd><p>Get dtype of the elements of the tensor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dtype.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tucker_riemopt.tucker.tucker.Tucker.flat_inner">
+<span class="sig-name descname"><span class="pre">flat_inner</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#tucker_riemopt.tucker.tucker.Tucker" title="tucker_riemopt.tucker.tucker.Tucker"><span class="pre">Tucker</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#tucker_riemopt.tucker.tucker.Tucker.flat_inner" title="Permalink to this definition">#</a></dt>
+<dd><p>Calculate inner product of given <cite>Tucker</cite> tensors.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>other</strong> – <cite>Tucker</cite> tensor.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Result of inner product.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tucker_riemopt.tucker.tucker.Tucker.from_dense">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_dense</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dense_tensor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-14</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tucker_riemopt.tucker.tucker.Tucker.from_dense" title="Permalink to this definition">#</a></dt>
+<dd><p>Convert dense tensor into <cite>Tucker</cite> representation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dense_tensor</strong> – Dense tensor that will be factorized.</p></li>
+<li><p><strong>eps</strong> – Precision of approximation.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><cite>Tucker</cite> representation of the provided dense tensor.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tucker_riemopt.tucker.tucker.Tucker.k_mode_product">
+<span class="sig-name descname"><span class="pre">k_mode_product</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">matrix</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tucker_riemopt.tucker.tucker.Tucker.k_mode_product" title="Permalink to this definition">#</a></dt>
+<dd><p>k-mode tensor-matrix contraction.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>k</strong> – Integer from 0 to d-1.</p></li>
+<li><p><strong>matrix</strong> – Must contain <cite>self.rank[k]</cite> columns.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><cite>Tucker</cite> tensor.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="tucker_riemopt.tucker.tucker.Tucker.ndim">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ndim</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#tucker_riemopt.tucker.tucker.Tucker.ndim" title="Permalink to this definition">#</a></dt>
+<dd><p>Number of dimensions of the tensor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dimensionality of the tensor.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tucker_riemopt.tucker.tucker.Tucker.norm">
+<span class="sig-name descname"><span class="pre">norm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">qr_based</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#tucker_riemopt.tucker.tucker.Tucker.norm" title="Permalink to this definition">#</a></dt>
+<dd><p>Frobenius norm of <cite>Tucker</cite> tensor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>qr_based</strong> – Whether to use stable QR-based implementation of norm, which is not differentiable, or unstable
+but differentiable implementation based on inner product. By default, differentiable implementation used.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Non-negative number which is the Frobenius norm of <cite>Tucker</cite> tensor.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="tucker_riemopt.tucker.tucker.Tucker.rank">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">rank</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#tucker_riemopt.tucker.tucker.Tucker.rank" title="Permalink to this definition">#</a></dt>
+<dd><p>Get multilinear rank of <cite>Tucker</cite> tensor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Sequence that represents the multilinear rank of tensor.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tucker_riemopt.tucker.tucker.Tucker.round">
+<span class="sig-name descname"><span class="pre">round</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_rank</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-14</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tucker_riemopt.tucker.tucker.Tucker.round" title="Permalink to this definition">#</a></dt>
+<dd><p>Perform rounding procedure. The <cite>Tucker</cite> tensor will be approximated by <cite>Tucker</cite> tensor with rank
+at most <cite>max_rank</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>max_rank</strong> – Maximum possible multilinear rank of the approximation. Expects a sequence of integers, but if
+a single number is provided, it will be treated as a sequence with all components equal. If <cite>None</cite> provided,
+will be performed approximation with precision <cite>eps</cite>.</p></li>
+<li><p><strong>eps</strong> – Precision of the approximation.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><cite>Tucker</cite> tensor.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="tucker_riemopt.tucker.tucker.Tucker.shape">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">shape</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#tucker_riemopt.tucker.tucker.Tucker.shape" title="Permalink to this definition">#</a></dt>
+<dd><p>Shape of <cite>Tucker</cite> tensor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Sequence that represents the shape of <cite>Tucker</cite> tensor.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tucker_riemopt.tucker.tucker.Tucker.sparse2tuck">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">sparse2tuck</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sparse_tensor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">SparseTensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_rank</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxiter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tucker_riemopt.tucker.tucker.Tucker.sparse2tuck" title="Permalink to this definition">#</a></dt>
+<dd><p>Accept sparse tensor and construct its Sparse Tucker decomposition.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sparse_tensor</strong> – Tensor in sparse format.</p></li>
+<li><p><strong>max_rank</strong> – If number, then defines the maximal <cite>rank</cite> of the result; If a list of numbers, then <cite>max_rank</cite>
+length should be d (number of dimensions) and <cite>max_rank[i]</cite> defines the (i)-th <cite>rank</cite> of the result. The
+following two versions are equivalent: <code class="docutils literal notranslate"><span class="pre">max_rank</span> <span class="pre">=</span> <span class="pre">r</span></code> and <code class="docutils literal notranslate"><span class="pre">max_rank</span> <span class="pre">=</span> <span class="pre">[r]</span> <span class="pre">*</span> <span class="pre">d</span></code>.</p></li>
+<li><p><strong>maxiter</strong> – If int, the HOOI algorithm will be executed until the specified number of iterations is reached.
+If None, no additional algorithms will be launched (note, that approximation error in that case may be large).</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tucker_riemopt.tucker.tucker.Tucker.to_dense">
+<span class="sig-name descname"><span class="pre">to_dense</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="headerlink" href="#tucker_riemopt.tucker.tucker.Tucker.to_dense" title="Permalink to this definition">#</a></dt>
+<dd><p>Convert <cite>Tucker</cite> tensor to dense representation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dense d-dimensional representation of <cite>Tucker</cite> tensor.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-tucker_riemopt.tucker.matrix">
+<span id="tucker-matrix"></span><h3><a class="toc-backref" href="#id6" role="doc-backlink">Tucker matrix</a><a class="headerlink" href="#module-tucker_riemopt.tucker.matrix" title="Permalink to this heading">#</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="tucker_riemopt.tucker.matrix.TuckerMatrix">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tucker_riemopt.tucker.matrix.</span></span><span class="sig-name descname"><span class="pre">TuckerMatrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">core:</span> <span class="pre">~torch.Tensor</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">factors:</span> <span class="pre">~typing.List[~torch.Tensor]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n:</span> <span class="pre">~typing.Sequence[int]</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m:</span> <span class="pre">~typing.Sequence[int]</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tucker_riemopt.tucker.matrix.TuckerMatrix" title="Permalink to this definition">#</a></dt>
+<dd><p>Tucker representation for operators.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>core</strong> – The core tensor of the decomposition.</p></li>
+<li><p><strong>factors</strong> – The list of factors of the decomposition.</p></li>
+<li><p><strong>n</strong> – Dimensionality of source space (see <code class="docutils literal notranslate"><span class="pre">from_dense</span></code> method).</p></li>
+<li><p><strong>m</strong> – Dimensionality of target space (see <code class="docutils literal notranslate"><span class="pre">from_dense</span></code> method).</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="tucker_riemopt.tucker.matrix.TuckerMatrix.from_dense">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_dense</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dense_tensor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-14</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tucker_riemopt.tucker.matrix.TuckerMatrix.from_dense" title="Permalink to this definition">#</a></dt>
+<dd><p>Convert dense tensor into <cite>TuckerMatrix</cite> representation. The resul is tensor that represents linear operator
+from R^N to R^M.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dense_tensor</strong> – Dense tensor that will be factorized.</p></li>
+<li><p><strong>n</strong> – Sequence of ints (n_1, …, n_a) such that N = n_1 * … * n_a.</p></li>
+<li><p><strong>m</strong> – Sequence of ints (m_1, …, m_b) such that M = m_1 * … * m_b.</p></li>
+<li><p><strong>eps</strong> – Precision of approximation.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><cite>TuckerMatrix</cite> representation of the provided dense tensor.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-tucker_riemopt.tucker.riemannian">
+<span id="riemannian"></span><h3><a class="toc-backref" href="#id7" role="doc-backlink">Riemannian</a><a class="headerlink" href="#module-tucker_riemopt.tucker.riemannian" title="Permalink to this heading">#</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="tucker_riemopt.tucker.riemannian.TangentVector">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tucker_riemopt.tucker.riemannian.</span></span><span class="sig-name descname"><span class="pre">TangentVector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">manifold_point</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta_core</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta_factors</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tucker_riemopt.tucker.riemannian.TangentVector" title="Permalink to this definition">#</a></dt>
+<dd><p>Special representation for tangent vectors of some <cite>point</cite> from the manifold.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>point</strong> – Point from the manifold of tensors of fixed multilinear (<cite>Tucker</cite>) rank.</p></li>
+<li><p><strong>delta_core</strong> – Tangent vector delta core.</p></li>
+<li><p><strong>delta_factors</strong> – Tangent vector delta factors.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="tucker_riemopt.tucker.riemannian.TangentVector.construct">
+<span class="sig-name descname"><span class="pre">construct</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tucker_riemopt.tucker.riemannian.TangentVector.construct" title="Permalink to this definition">#</a></dt>
+<dd><p>Build <cite>Tucker</cite> tensor from <cite>TangentVector</cite> representation with at most twice bigger rank.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><cite>Tucker</cite> tensor.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tucker_riemopt.tucker.riemannian.TangentVector.group_cores">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">group_cores</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">corner_core</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">padding_core</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tucker_riemopt.tucker.riemannian.TangentVector.group_cores" title="Permalink to this definition">#</a></dt>
+<dd><p>Combine point’s core and delta core into unite core of tangent vector.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>corner_core</strong> – Corner block of the grouped core.</p></li>
+<li><p><strong>padding_core</strong> – Adjacent block of the grouped core.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Grouped core.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tucker_riemopt.tucker.riemannian.TangentVector.linear_comb">
+<span class="sig-name descname"><span class="pre">linear_comb</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#tucker_riemopt.tucker.riemannian.TangentVector" title="tucker_riemopt.tucker.riemannian.TangentVector"><span class="pre">TangentVector</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tucker_riemopt.tucker.riemannian.TangentVector.linear_comb" title="Permalink to this definition">#</a></dt>
+<dd><dl class="simple">
+<dt>Compute linear combination of this tangent vector of <cite>X</cite> (<cite>self.point</cite>) with either other tangent vector <cite>xi</cite> or</dt><dd><p><cite>X</cite>. Although, linear combination may be obtained by addition operation of Tucker tensors, it is important to
+note, that such operation leads to rank increasing. For instance, if <cite>X</cite> rank is <cite>r</cite>, then ranks of its
+tangent vectors are <cite>2r</cite>, ant thus, the rank of the result of taking linear combination by naive addition is
+<cite>4r</cite>. On the other hand, this function obtains linear combination efficiently without increase of the rank. The
+rank of the result is always <cite>2r</cite>.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> – Parameter of the linear combination.</p></li>
+<li><p><strong>b</strong> – Parameter of the linear combination.</p></li>
+<li><p><strong>xi</strong> – If <cite>None</cite>, that linear combination with manifold point <cite>X</cite> will be computed. With <cite>xi</cite> otherwise.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><cite>a * self + b * xi</cite> if <cite>xi</cite> is not <cite>None</cite> and <cite>a * self + b * self.point</cite> otherwise.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tucker_riemopt.tucker.riemannian.grad">
+<span class="sig-prename descclassname"><span class="pre">tucker_riemopt.tucker.riemannian.</span></span><span class="sig-name descname"><span class="pre">grad</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#tucker_riemopt.tucker.tucker.Tucker" title="tucker_riemopt.tucker.tucker.Tucker"><span class="pre">Tucker</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">X</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#tucker_riemopt.tucker.tucker.Tucker" title="tucker_riemopt.tucker.tucker.Tucker"><span class="pre">Tucker</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">retain_graph</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#tucker_riemopt.tucker.riemannian.TangentVector" title="tucker_riemopt.tucker.riemannian.TangentVector"><span class="pre">TangentVector</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#tucker_riemopt.tucker.riemannian.grad" title="Permalink to this definition">#</a></dt>
+<dd><dl class="simple">
+<dt>Compute the Riemannian gradient of the smooth scalar valued function <cite>f</cite> at point <cite>X</cite>. The result is the tangent</dt><dd><p>vector of <cite>X</cite>. Also returns value <cite>f(X)</cite>.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>f</strong> – Smooth scalar valued function.</p></li>
+<li><p><strong>X</strong> – Point from the manifold.</p></li>
+<li><p><strong>retain_graph</strong> – Optional argument, which may be provided to autodiff framework (e.g. pytorch).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A tangent vector of <cite>X</cite> which is the Riemannian gradient of <cite>f</cite> and value <cite>f(X)</cite>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tucker_riemopt.tucker.riemannian.project">
+<span class="sig-prename descclassname"><span class="pre">tucker_riemopt.tucker.riemannian.</span></span><span class="sig-name descname"><span class="pre">project</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#tucker_riemopt.tucker.tucker.Tucker" title="tucker_riemopt.tucker.tucker.Tucker"><span class="pre">Tucker</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">xi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#tucker_riemopt.tucker.tucker.Tucker" title="tucker_riemopt.tucker.tucker.Tucker"><span class="pre">Tucker</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">retain_graph</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#tucker_riemopt.tucker.riemannian.TangentVector" title="tucker_riemopt.tucker.riemannian.TangentVector"><span class="pre">TangentVector</span></a></span></span><a class="headerlink" href="#tucker_riemopt.tucker.riemannian.project" title="Permalink to this definition">#</a></dt>
+<dd><p>Project <cite>xi</cite> onto the tangent space of <cite>X</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> – Point from the manifold.</p></li>
+<li><p><strong>xi</strong> – Arbitrary tensor represented in Tucker format.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Result of projection of <cite>xi</cite> onto the tangent space of <cite>X</cite>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+<section id="sf-tucker">
+<h2><a class="toc-backref" href="#id8" role="doc-backlink">SF-Tucker</a><a class="headerlink" href="#sf-tucker" title="Permalink to this heading">#</a></h2>
+<section id="id1">
+<h3><a class="toc-backref" href="#id9" role="doc-backlink">Base interface</a><a class="headerlink" href="#id1" title="Permalink to this heading">#</a></h3>
+<span class="target" id="module-tucker_riemopt.sf_tucker.sf_tucker"></span><dl class="py class">
+<dt class="sig sig-object py" id="tucker_riemopt.sf_tucker.sf_tucker.SFTucker">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tucker_riemopt.sf_tucker.sf_tucker.</span></span><span class="sig-name descname"><span class="pre">SFTucker</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">core:</span> <span class="pre">~torch.Tensor</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">factors:</span> <span class="pre">~typing.List[~torch.Tensor]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_shared_factors:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shared_factor:</span> <span class="pre">None</span> <span class="pre">|</span> <span class="pre">~torch.Tensor</span> <span class="pre">=</span> <span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tucker_riemopt.sf_tucker.sf_tucker.SFTucker" title="Permalink to this definition">#</a></dt>
+<dd><p>SFTucker tensor factorisation. All shared modes are gathered at the end.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>core</strong> – The core tensor of the decomposition.</p></li>
+<li><p><strong>factors</strong> – The list of regular factors of the decomposition.</p></li>
+<li><p><strong>num_shared_factors</strong> – Number of shared factors.</p></li>
+<li><p><strong>shared_factor</strong> – Shared factor.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="tucker_riemopt.sf_tucker.sf_tucker.SFTucker.ds">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ds</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#tucker_riemopt.sf_tucker.sf_tucker.SFTucker.ds" title="Permalink to this definition">#</a></dt>
+<dd><p>Amount of shared modes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Amount of modes with shared factors.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="tucker_riemopt.sf_tucker.sf_tucker.SFTucker.dt">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">dt</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#tucker_riemopt.sf_tucker.sf_tucker.SFTucker.dt" title="Permalink to this definition">#</a></dt>
+<dd><p>Amount of regular modes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Amount of modes with regular factors.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="tucker_riemopt.sf_tucker.sf_tucker.SFTucker.dtype">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">dtype</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">type</span></em><a class="headerlink" href="#tucker_riemopt.sf_tucker.sf_tucker.SFTucker.dtype" title="Permalink to this definition">#</a></dt>
+<dd><p>Get dtype of the elements of the tensor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dtype.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tucker_riemopt.sf_tucker.sf_tucker.SFTucker.flat_inner">
+<span class="sig-name descname"><span class="pre">flat_inner</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#tucker_riemopt.sf_tucker.sf_tucker.SFTucker" title="tucker_riemopt.sf_tucker.sf_tucker.SFTucker"><span class="pre">SFTucker</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tucker_riemopt.sf_tucker.sf_tucker.SFTucker.flat_inner" title="Permalink to this definition">#</a></dt>
+<dd><p>Calculate inner product of given <cite>SFTucker</cite> tensors.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>other</strong> – <cite>SFTucker</cite> tensor.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Result of inner product.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tucker_riemopt.sf_tucker.sf_tucker.SFTucker.from_dense">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_dense</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dense_tensor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-14</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tucker_riemopt.sf_tucker.sf_tucker.SFTucker.from_dense" title="Permalink to this definition">#</a></dt>
+<dd><p>Convert dense tensor into SFTucker representation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dense_tensor</strong> – Dense tensor that will be factorized.</p></li>
+<li><p><strong>ds</strong> – Number of shared factors.</p></li>
+<li><p><strong>sft_rank</strong> – Desired SFT rank. If <cite>None</cite>, then parameter <cite>eps</cite> must be provided.</p></li>
+<li><p><strong>eps</strong> – If <cite>sft_rank</cite> is <cite>None</cite>, then <cite>eps</cite> represents precision of approximation. If <cite>sft_rank</cite> is not
+<cite>None</cite>, then ignored.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>SFTucker representation of the provided dense tensor.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tucker_riemopt.sf_tucker.sf_tucker.SFTucker.from_tucker">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_tucker</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tucker_tensor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#tucker_riemopt.tucker.tucker.Tucker" title="tucker_riemopt.tucker.tucker.Tucker"><span class="pre">Tucker</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">ds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-14</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tucker_riemopt.sf_tucker.sf_tucker.SFTucker.from_tucker" title="Permalink to this definition">#</a></dt>
+<dd><p>Converts <cite>Tucker</cite> tensor into SFTucker representation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tucker_tensor</strong> – <cite>Tucker</cite> tensor that will be transformed into <cite>SFTucker</cite>.</p></li>
+<li><p><strong>ds</strong> – Number of shared factors.</p></li>
+<li><p><strong>sft_rank</strong> – Desired SFT rank. If <cite>None</cite>, then parameter <cite>eps</cite> must be provided.</p></li>
+<li><p><strong>eps</strong> – If <cite>sft_rank</cite> is <cite>None</cite>, then <cite>eps</cite> represents precision of approximation. If <cite>sft_rank</cite> is not
+<cite>None</cite>, then ignored.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>SFTucker representation of the provided dense tensor.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tucker_riemopt.sf_tucker.sf_tucker.SFTucker.k_mode_product">
+<span class="sig-name descname"><span class="pre">k_mode_product</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">matrix</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tucker_riemopt.sf_tucker.sf_tucker.SFTucker.k_mode_product" title="Permalink to this definition">#</a></dt>
+<dd><p>k-mode tensor-matrix contraction.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>k</strong> – Integer from 0 to d-1.</p></li>
+<li><p><strong>matrix</strong> – Must contain <cite>self.rank[k]</cite> columns.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><cite>SFTucker</cite> tensor.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="tucker_riemopt.sf_tucker.sf_tucker.SFTucker.ndim">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ndim</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#tucker_riemopt.sf_tucker.sf_tucker.SFTucker.ndim" title="Permalink to this definition">#</a></dt>
+<dd><p>Number of dimensions of the tensor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dimensionality of the tensor.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tucker_riemopt.sf_tucker.sf_tucker.SFTucker.norm">
+<span class="sig-name descname"><span class="pre">norm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">qr_based</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tucker_riemopt.sf_tucker.sf_tucker.SFTucker.norm" title="Permalink to this definition">#</a></dt>
+<dd><p>Frobenius norm of <cite>SFTucker</cite> tensor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>qr_based</strong> – Whether to use stable QR-based implementation of norm, which is not differentiable,
+or unstable but differentiable implementation based on inner product. By default, differentiable
+implementation is used.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Non-negative number which is the Frobenius norm of <cite>SFTucker</cite> tensor.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="tucker_riemopt.sf_tucker.sf_tucker.SFTucker.rank">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">rank</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#tucker_riemopt.sf_tucker.sf_tucker.SFTucker.rank" title="Permalink to this definition">#</a></dt>
+<dd><p>Get SFT rank of <cite>SFTucker</cite> tensor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Sequence that represents the SFT rank of tensor.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="tucker_riemopt.sf_tucker.sf_tucker.SFTucker.regular_factors">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">regular_factors</span></span><a class="headerlink" href="#tucker_riemopt.sf_tucker.sf_tucker.SFTucker.regular_factors" title="Permalink to this definition">#</a></dt>
+<dd><p>Alias for <cite>factors</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Factors.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tucker_riemopt.sf_tucker.sf_tucker.SFTucker.round">
+<span class="sig-name descname"><span class="pre">round</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_rank</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-14</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tucker_riemopt.sf_tucker.sf_tucker.SFTucker.round" title="Permalink to this definition">#</a></dt>
+<dd><p>Perform rounding procedure. The <cite>SFTucker</cite> tensor will be approximated by <cite>SFTucker</cite> tensor with rank
+at most <cite>max_rank</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>max_rank</strong> – Maximum possible <cite>SFT rank</cite> of the approximation. Expects a sequence of integers. If
+provided a sequence of two elements, then the first element is treated as a value of a multilinear part
+of rank with all equal components. If <cite>None</cite> provided, will be performed approximation with precision
+<cite>eps</cite>. For example, if <cite>max_rank=[2, 5]</cite> for three-dimensional tensor, then actual SFT rank is treated
+as <cite>[2, 2, 5]</cite>.</p></li>
+<li><p><strong>eps</strong> – Precision of approximation.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><cite>Tucker</cite> tensor.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="tucker_riemopt.sf_tucker.sf_tucker.SFTucker.shape">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">shape</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#tucker_riemopt.sf_tucker.sf_tucker.SFTucker.shape" title="Permalink to this definition">#</a></dt>
+<dd><p>Shape of <cite>SFTucker</cite> tensor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Sequence that represents the shape of <cite>SFTucker</cite> tensor.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tucker_riemopt.sf_tucker.sf_tucker.SFTucker.shared_modes_product">
+<span class="sig-name descname"><span class="pre">shared_modes_product</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">matrix</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tucker_riemopt.sf_tucker.sf_tucker.SFTucker.shared_modes_product" title="Permalink to this definition">#</a></dt>
+<dd><p>Tensor-matrix contraction by shared modes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>matrix</strong> – Must contain <cite>self.rank[-1]</cite> columns.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><cite>SFTucker</cite> tensor.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tucker_riemopt.sf_tucker.sf_tucker.SFTucker.to_dense">
+<span class="sig-name descname"><span class="pre">to_dense</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tucker_riemopt.sf_tucker.sf_tucker.SFTucker.to_dense" title="Permalink to this definition">#</a></dt>
+<dd><p>Convert <cite>SFTucker</cite> tensor to dense representation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dense d-dimensional representation of <cite>SFTucker</cite> tensor.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-tucker_riemopt.sf_tucker.matrix">
+<span id="sf-tucker-matrix"></span><h3><a class="toc-backref" href="#id10" role="doc-backlink">SF-Tucker matrix</a><a class="headerlink" href="#module-tucker_riemopt.sf_tucker.matrix" title="Permalink to this heading">#</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="tucker_riemopt.sf_tucker.matrix.SFTuckerMatrix">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tucker_riemopt.sf_tucker.matrix.</span></span><span class="sig-name descname"><span class="pre">SFTuckerMatrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">core:</span> <span class="pre">~torch.Tensor</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">factors:</span> <span class="pre">~typing.List[~torch.Tensor]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_shared_factors:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shared_factor:</span> <span class="pre">None</span> <span class="pre">|</span> <span class="pre">~torch.Tensor</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n:</span> <span class="pre">~typing.Sequence[int]</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m:</span> <span class="pre">~typing.Sequence[int]</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tucker_riemopt.sf_tucker.matrix.SFTuckerMatrix" title="Permalink to this definition">#</a></dt>
+<dd><p>Tucker representation for operators.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>core</strong> – The core tensor of the decomposition.</p></li>
+<li><p><strong>factors</strong> – The list of factors of the decomposition.</p></li>
+<li><p><strong>num_shared_factors</strong> – Number of shared factors.</p></li>
+<li><p><strong>shared_factor</strong> – Shared factor.</p></li>
+<li><p><strong>n</strong> – Dimensionality of source space (see <code class="docutils literal notranslate"><span class="pre">from_dense</span></code> method).</p></li>
+<li><p><strong>m</strong> – Dimensionality of target space (see <code class="docutils literal notranslate"><span class="pre">from_dense</span></code> method).</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="tucker_riemopt.sf_tucker.matrix.SFTuckerMatrix.from_dense">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_dense</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dense_tensor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-14</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tucker_riemopt.sf_tucker.matrix.SFTuckerMatrix.from_dense" title="Permalink to this definition">#</a></dt>
+<dd><p>Convert dense tensor into <cite>TuckerMatrix</cite> representation. The resul is tensor that represents linear operator
+from R^N to R^M.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dense_tensor</strong> – Dense tensor that will be factorized.</p></li>
+<li><p><strong>ds</strong> – Number of shared factors.</p></li>
+<li><p><strong>n</strong> – Sequence of ints (n_1, …, n_a) such that N = n_1 * … * n_a.</p></li>
+<li><p><strong>m</strong> – Sequence of ints (m_1, …, m_b) such that M = m_1 * … * m_b.</p></li>
+<li><p><strong>eps</strong> – Precision of approximation.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><cite>TuckerMatrix</cite> representation of the provided dense tensor.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="id2">
+<h3><a class="toc-backref" href="#id11" role="doc-backlink">Riemannian</a><a class="headerlink" href="#id2" title="Permalink to this heading">#</a></h3>
+<span class="target" id="module-tucker_riemopt.sf_tucker.riemannian"></span><dl class="py class">
+<dt class="sig sig-object py" id="tucker_riemopt.sf_tucker.riemannian.TangentVector">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tucker_riemopt.sf_tucker.riemannian.</span></span><span class="sig-name descname"><span class="pre">TangentVector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">manifold_point</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta_core</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta_regular_factors</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta_shared_factor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tucker_riemopt.sf_tucker.riemannian.TangentVector" title="Permalink to this definition">#</a></dt>
+<dd><p>Special representation for tangent vectors of some <cite>point</cite> from the manifold.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>point</strong> – Point from the manifold of tensors of fixed SFT rank.</p></li>
+<li><p><strong>delta_core</strong> – Tangent vector delta core.</p></li>
+<li><p><strong>delta_regular_factors</strong> – Tangent vector delta regular factors.</p></li>
+<li><p><strong>delta_shared_factor</strong> – Tangent vector delta shared factors.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="tucker_riemopt.sf_tucker.riemannian.TangentVector.construct">
+<span class="sig-name descname"><span class="pre">construct</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tucker_riemopt.sf_tucker.riemannian.TangentVector.construct" title="Permalink to this definition">#</a></dt>
+<dd><p>Build <cite>SFTucker</cite> tensor from <cite>TangentVector</cite> representation with at most twice bigger rank.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><cite>SFTucker</cite> tensor.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tucker_riemopt.sf_tucker.riemannian.TangentVector.group_cores">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">group_cores</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">corner_core</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">padding_core</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tucker_riemopt.sf_tucker.riemannian.TangentVector.group_cores" title="Permalink to this definition">#</a></dt>
+<dd><p>Combine point’s core and delta core into unite core of tangent vector.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>corner_core</strong> – Corner block of the grouped core.</p></li>
+<li><p><strong>padding_core</strong> – Adjacent block of the grouped core.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Grouped core.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tucker_riemopt.sf_tucker.riemannian.TangentVector.linear_comb">
+<span class="sig-name descname"><span class="pre">linear_comb</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#tucker_riemopt.sf_tucker.riemannian.TangentVector" title="tucker_riemopt.sf_tucker.riemannian.TangentVector"><span class="pre">TangentVector</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tucker_riemopt.sf_tucker.riemannian.TangentVector.linear_comb" title="Permalink to this definition">#</a></dt>
+<dd><dl class="simple">
+<dt>Compute linear combination of this tangent vector of <cite>X</cite> (<cite>self.point</cite>) with either other tangent vector <cite>xi</cite></dt><dd><p>or <cite>X</cite>. Although, linear combination may be obtained by addition operation of SF-Tucker tensors, it is
+important to note, that such operation leads to rank increasing. For instance, if <cite>X</cite> rank is <cite>r</cite>, then ranks
+of its tangent vectors are <cite>2r</cite>, ant thus, the rank of the result of taking linear combination by naive
+addition is <cite>4r</cite>. On the other hand, this function obtains linear combination efficiently without increase of
+the rank. The rank of the result is always <cite>2r</cite>.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> – Parameter of the linear combination.</p></li>
+<li><p><strong>b</strong> – Parameter of the linear combination.</p></li>
+<li><p><strong>xi</strong> – If <cite>None</cite>, that linear combination with manifold point <cite>X</cite> will be computed. With <cite>xi</cite> otherwise.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><cite>a * self + b * xi</cite> if <cite>xi</cite> is not <cite>None</cite> and <cite>a * self + b * self.point</cite> otherwise.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tucker_riemopt.sf_tucker.riemannian.grad">
+<span class="sig-prename descclassname"><span class="pre">tucker_riemopt.sf_tucker.riemannian.</span></span><span class="sig-name descname"><span class="pre">grad</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#tucker_riemopt.sf_tucker.sf_tucker.SFTucker" title="tucker_riemopt.sf_tucker.sf_tucker.SFTucker"><span class="pre">SFTucker</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">X</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#tucker_riemopt.sf_tucker.sf_tucker.SFTucker" title="tucker_riemopt.sf_tucker.sf_tucker.SFTucker"><span class="pre">SFTucker</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">retain_graph</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#tucker_riemopt.sf_tucker.riemannian.TangentVector" title="tucker_riemopt.sf_tucker.riemannian.TangentVector"><span class="pre">TangentVector</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#tucker_riemopt.sf_tucker.riemannian.grad" title="Permalink to this definition">#</a></dt>
+<dd><p>Compute the Riemannian gradient of the smooth scalar valued function <cite>f</cite> at point <cite>X</cite>. The result is the tangent
+vector of <cite>X</cite>. Also returns value <cite>f(X)</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>f</strong> – Smooth scalar valued function.</p></li>
+<li><p><strong>X</strong> – Point from the manifold.</p></li>
+<li><p><strong>retain_graph</strong> – Optional argument, which may be provided to autodiff framework (e.g. pytorch).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A tangent vector of <cite>X</cite> which is the Riemannian gradient of <cite>f</cite> and value <cite>f(X)</cite>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tucker_riemopt.sf_tucker.riemannian.project">
+<span class="sig-prename descclassname"><span class="pre">tucker_riemopt.sf_tucker.riemannian.</span></span><span class="sig-name descname"><span class="pre">project</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#tucker_riemopt.sf_tucker.sf_tucker.SFTucker" title="tucker_riemopt.sf_tucker.sf_tucker.SFTucker"><span class="pre">SFTucker</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">xi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#tucker_riemopt.sf_tucker.sf_tucker.SFTucker" title="tucker_riemopt.sf_tucker.sf_tucker.SFTucker"><span class="pre">SFTucker</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">retain_graph</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#tucker_riemopt.sf_tucker.riemannian.TangentVector" title="tucker_riemopt.sf_tucker.riemannian.TangentVector"><span class="pre">TangentVector</span></a></span></span><a class="headerlink" href="#tucker_riemopt.sf_tucker.riemannian.project" title="Permalink to this definition">#</a></dt>
+<dd><p>Project <cite>xi</cite> onto the tangent space of <cite>X</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> – Point from the manifold.</p></li>
+<li><p><strong>xi</strong> – Arbitrary tensor represented in SF-Tucker format.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Result of projection of <cite>xi</cite> onto the tangent space of <cite>X</cite>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+</section>
+
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer">
+                  <!-- Previous / next buttons -->
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="main.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Installation</p>
+      </div>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker">Tucker</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#module-tucker_riemopt.tucker.tucker">Base interface</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.tucker.tucker.Tucker"><code class="docutils literal notranslate"><span class="pre">Tucker</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.tucker.tucker.Tucker.dtype"><code class="docutils literal notranslate"><span class="pre">Tucker.dtype</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.tucker.tucker.Tucker.flat_inner"><code class="docutils literal notranslate"><span class="pre">Tucker.flat_inner()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.tucker.tucker.Tucker.from_dense"><code class="docutils literal notranslate"><span class="pre">Tucker.from_dense()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.tucker.tucker.Tucker.k_mode_product"><code class="docutils literal notranslate"><span class="pre">Tucker.k_mode_product()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.tucker.tucker.Tucker.ndim"><code class="docutils literal notranslate"><span class="pre">Tucker.ndim</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.tucker.tucker.Tucker.norm"><code class="docutils literal notranslate"><span class="pre">Tucker.norm()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.tucker.tucker.Tucker.rank"><code class="docutils literal notranslate"><span class="pre">Tucker.rank</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.tucker.tucker.Tucker.round"><code class="docutils literal notranslate"><span class="pre">Tucker.round()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.tucker.tucker.Tucker.shape"><code class="docutils literal notranslate"><span class="pre">Tucker.shape</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.tucker.tucker.Tucker.sparse2tuck"><code class="docutils literal notranslate"><span class="pre">Tucker.sparse2tuck()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.tucker.tucker.Tucker.to_dense"><code class="docutils literal notranslate"><span class="pre">Tucker.to_dense()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#module-tucker_riemopt.tucker.matrix">Tucker matrix</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.tucker.matrix.TuckerMatrix"><code class="docutils literal notranslate"><span class="pre">TuckerMatrix</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.tucker.matrix.TuckerMatrix.from_dense"><code class="docutils literal notranslate"><span class="pre">TuckerMatrix.from_dense()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#module-tucker_riemopt.tucker.riemannian">Riemannian</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.tucker.riemannian.TangentVector"><code class="docutils literal notranslate"><span class="pre">TangentVector</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.tucker.riemannian.TangentVector.construct"><code class="docutils literal notranslate"><span class="pre">TangentVector.construct()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.tucker.riemannian.TangentVector.group_cores"><code class="docutils literal notranslate"><span class="pre">TangentVector.group_cores()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.tucker.riemannian.TangentVector.linear_comb"><code class="docutils literal notranslate"><span class="pre">TangentVector.linear_comb()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.tucker.riemannian.grad"><code class="docutils literal notranslate"><span class="pre">grad()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.tucker.riemannian.project"><code class="docutils literal notranslate"><span class="pre">project()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sf-tucker">SF-Tucker</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">Base interface</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.sf_tucker.sf_tucker.SFTucker"><code class="docutils literal notranslate"><span class="pre">SFTucker</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.sf_tucker.sf_tucker.SFTucker.ds"><code class="docutils literal notranslate"><span class="pre">SFTucker.ds</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.sf_tucker.sf_tucker.SFTucker.dt"><code class="docutils literal notranslate"><span class="pre">SFTucker.dt</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.sf_tucker.sf_tucker.SFTucker.dtype"><code class="docutils literal notranslate"><span class="pre">SFTucker.dtype</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.sf_tucker.sf_tucker.SFTucker.flat_inner"><code class="docutils literal notranslate"><span class="pre">SFTucker.flat_inner()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.sf_tucker.sf_tucker.SFTucker.from_dense"><code class="docutils literal notranslate"><span class="pre">SFTucker.from_dense()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.sf_tucker.sf_tucker.SFTucker.from_tucker"><code class="docutils literal notranslate"><span class="pre">SFTucker.from_tucker()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.sf_tucker.sf_tucker.SFTucker.k_mode_product"><code class="docutils literal notranslate"><span class="pre">SFTucker.k_mode_product()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.sf_tucker.sf_tucker.SFTucker.ndim"><code class="docutils literal notranslate"><span class="pre">SFTucker.ndim</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.sf_tucker.sf_tucker.SFTucker.norm"><code class="docutils literal notranslate"><span class="pre">SFTucker.norm()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.sf_tucker.sf_tucker.SFTucker.rank"><code class="docutils literal notranslate"><span class="pre">SFTucker.rank</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.sf_tucker.sf_tucker.SFTucker.regular_factors"><code class="docutils literal notranslate"><span class="pre">SFTucker.regular_factors</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.sf_tucker.sf_tucker.SFTucker.round"><code class="docutils literal notranslate"><span class="pre">SFTucker.round()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.sf_tucker.sf_tucker.SFTucker.shape"><code class="docutils literal notranslate"><span class="pre">SFTucker.shape</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.sf_tucker.sf_tucker.SFTucker.shared_modes_product"><code class="docutils literal notranslate"><span class="pre">SFTucker.shared_modes_product()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.sf_tucker.sf_tucker.SFTucker.to_dense"><code class="docutils literal notranslate"><span class="pre">SFTucker.to_dense()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#module-tucker_riemopt.sf_tucker.matrix">SF-Tucker matrix</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.sf_tucker.matrix.SFTuckerMatrix"><code class="docutils literal notranslate"><span class="pre">SFTuckerMatrix</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.sf_tucker.matrix.SFTuckerMatrix.from_dense"><code class="docutils literal notranslate"><span class="pre">SFTuckerMatrix.from_dense()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">Riemannian</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.sf_tucker.riemannian.TangentVector"><code class="docutils literal notranslate"><span class="pre">TangentVector</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.sf_tucker.riemannian.TangentVector.construct"><code class="docutils literal notranslate"><span class="pre">TangentVector.construct()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.sf_tucker.riemannian.TangentVector.group_cores"><code class="docutils literal notranslate"><span class="pre">TangentVector.group_cores()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.sf_tucker.riemannian.TangentVector.linear_comb"><code class="docutils literal notranslate"><span class="pre">TangentVector.linear_comb()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.sf_tucker.riemannian.grad"><code class="docutils literal notranslate"><span class="pre">grad()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.sf_tucker.riemannian.project"><code class="docutils literal notranslate"><span class="pre">project()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By JohanDDC
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  <p class="copyright">
+    
+      © Copyright 2023, JohanDDC.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="_static/scripts/bootstrap.js?digest=c5ced968eda925caa686"></script>
+<script src="_static/scripts/pydata-sphinx-theme.js?digest=c5ced968eda925caa686"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>
