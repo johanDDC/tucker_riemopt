@@ -1,2 +1,4 @@
 .idea
+.pytest_cache
 venv
+docs/_build
