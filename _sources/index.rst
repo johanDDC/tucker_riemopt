@@ -4,10 +4,10 @@
    contain the root `toctree` directive.
 
 tucker_riemopt — Tucker toolbox for Riemannian optimization
-==========================================
+===========================================================
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 2
    :caption: Contents:
 
    main
