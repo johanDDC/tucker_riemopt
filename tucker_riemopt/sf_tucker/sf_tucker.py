@@ -12,20 +12,26 @@ from tucker_riemopt.tucker.tucker import Tucker
 
 @dataclass()
 class SFTucker(Tucker):
+    """SFTucker tensor factorisation. All shared modes are gathered at the end.
+
+        :param core: The core tensor of the decomposition.
+        :param factors: The list of regular factors of the decomposition.
+        :param num_shared_factors: Number of shared factors.
+        :param shared_factor: Shared factor.
+    """
     num_shared_factors: int = 0
     shared_factor: Union[back.type(), None] = None
 
     @classmethod
     def __sf_hosvd(cls, dense_tensor: back.type(), ds: int, sft_rank=None, eps=1e-14):
-        """
-        Converts dense tensor into SF-Tucker representation.
-        .. math:: (1): \quad \|A - T_{optimal}\|_F = \eps \|A\|_F
+        """Convert dense tensor into SFTucker representation.
 
-        :param ds: amount of shared factors.
-        :param sft_rank: desired SFT-rank. If `None`, then parameter `eps` must be provided.
-        :param eps: if `sft_rank` is `None`, then `eps` represents precision of approximation as specified at (1).
-         If `sft_rank` is not `None`, then ignored.
-        :return: SF-Tucker representation of the provided dense tensor.
+        :param dense_tensor: Dense tensor that will be factorized.
+        :param ds: Number of shared factors.
+        :param sft_rank: Desired SFT rank. If `None`, then parameter `eps` must be provided.
+        :param eps: If `sft_rank` is `None`, then `eps` represents precision of approximation. If `sft_rank` is not
+         `None`, then ignored.
+        :return: SFTucker representation of the provided dense tensor.
         """
         d = len(dense_tensor.shape)
         dt = d - ds
@@ -76,14 +82,14 @@ class SFTucker(Tucker):
 
     @classmethod
     def from_dense(cls, dense_tensor: back.type(), ds: Union[int, None] = None, eps=1e-14):
-        """
-        Converts dense tensor into SF-Tucker representation.
-        .. math::
-            (1): \quad \|A - T_{optimal}\|_F = \eps \|A\|_F
+        """Convert dense tensor into SFTucker representation.
 
-        :param ds: number of shared modes. If `None`, then ds=N, where N is a number of last equal modes.
-        :param eps: precision of approximation as specified at (1).
-        :return: SF-Tucker representation of the provided dense tensor.
+        :param dense_tensor: Dense tensor that will be factorized.
+        :param ds: Number of shared factors.
+        :param sft_rank: Desired SFT rank. If `None`, then parameter `eps` must be provided.
+        :param eps: If `sft_rank` is `None`, then `eps` represents precision of approximation. If `sft_rank` is not
+         `None`, then ignored.
+        :return: SFTucker representation of the provided dense tensor.
         """
         shape = dense_tensor.shape
         reversed_shape = shape[::-1]
@@ -99,6 +105,15 @@ class SFTucker(Tucker):
 
     @classmethod
     def from_tucker(cls, tucker_tensor: Tucker, ds: Union[int, None] = None, eps=1e-14):
+        """Converts `Tucker` tensor into SFTucker representation.
+
+        :param tucker_tensor: `Tucker` tensor that will be transformed into `SFTucker`.
+        :param ds: Number of shared factors.
+        :param sft_rank: Desired SFT rank. If `None`, then parameter `eps` must be provided.
+        :param eps: If `sft_rank` is `None`, then `eps` represents precision of approximation. If `sft_rank` is not
+         `None`, then ignored.
+        :return: SFTucker representation of the provided dense tensor.
+        """
         shape = tucker_tensor.shape
         reversed_shape = shape[::-1]
         num_equal_modes = 0
@@ -140,8 +155,9 @@ class SFTucker(Tucker):
 
     @property
     def ndim(self) -> int:
-        """
-        :return: dimensionality of the tensor
+        """Number of dimensions of the tensor.
+
+        :return: Dimensionality of the tensor.
         """
         return len(self.core.shape)
 
@@ -150,55 +166,57 @@ class SFTucker(Tucker):
         """
         Alias for `factors`.
 
-        :return: factors
+        :return: Factors.
         """
         return self.factors
 
     @property
     def dt(self) -> int:
         """
-        :return: amount of modes with regular factors
+        Amount of regular modes.
+
+        :return: Amount of modes with regular factors.
         """
         return len(self.regular_factors)
 
     @property
     def ds(self) -> int:
         """
-        :return: amount of modes with shared factors
+        Amount of shared modes.
+
+        :return: Amount of modes with shared factors.
         """
         return self.ndim - self.dt
 
     @property
     def shape(self) -> Sequence[int]:
-        """
-        :return: sequence represents the shape of the SF-Tucker tensor.
+        """Shape of `SFTucker` tensor.
+
+        :return: Sequence that represents the shape of `SFTucker` tensor.
         """
         return [self.regular_factors[i].shape[0] for i in range(self.dt)] + [self.shared_factor.shape[0]] * self.ds
 
     @property
     def rank(self) -> List[int]:
-        """
-        Get SFT-rank of the SF-Tucker tensor.
+        """Get SFT rank of `SFTucker` tensor.
 
-        :return: sequence represents the SFT-rank of tensor.
+        :return: Sequence that represents the SFT rank of tensor.
         """
         return list(self.core.shape)[:self.dt] + [self.core.shape[-1]]
 
     @property
     def dtype(self) -> type:
-        """
-        Get dtype of the elements in the SF-Tucker tensor.
+        """Get dtype of the elements of the tensor.
 
-        :return: dtype
+        :return: dtype.
         """
         return self.core.dtype
 
     def __add__(self, other: "SFTucker"):
-        """
-        Add two `Tucker` tensors. The ML-rank of the result is the sum of ML-ranks of the operands.
+        """Add two `SFTucker` tensors. The SFT rank of the result is the sum of SFT ranks of the operands.
 
-        :param other: `Tucker` tensor.
-        :return: `Tucker` tensor.
+        :param other: `SFTucker` tensor.
+        :return: `SFTucker` tensor.
         :raise: ValueError if amount of shared factors of `self` and `other` doesn't match.
         """
         if self.num_shared_factors != other.num_shared_factors:
@@ -220,14 +238,11 @@ class SFTucker(Tucker):
 
     def __rmul__(self, a: float):
         """
-        Elementwise multiplication of `SF-Tucker` tensor by scalar.
+        Elementwise multiplication of `SFTucker` tensor by scalar.
 
-        :param a: scalar value.
-        :return: `SF-Tucker` tensor.
+        :param a: Scalar value.
+        :return: `SFTucker` tensor.
         """
-        # new_tensor = deepcopy(self)
-        # return SFTucker(a * new_tensor.core, new_tensor.regular_factors,
-        #                 self.num_shared_factors, new_tensor.shared_factor)
         return SFTucker(a * self.core, self.regular_factors, self.num_shared_factors, self.shared_factor)
 
     def __neg__(self):
@@ -238,19 +253,16 @@ class SFTucker(Tucker):
         return self + other
 
     def round(self, max_rank: Union[None, Sequence[int]] = None, eps=1e-14):
-        """
-                Perform rounding procedure. The `SF-Tucker` tensor will be approximated by `SF-Tucker` tensor with rank
-                at most `max_rank`.
-                .. math::
-                    (1): \quad \|A - T_{optimal}\|_F = \eps \|A\|_F
+        """Perform rounding procedure. The `SFTucker` tensor will be approximated by `SFTucker` tensor with rank
+        at most `max_rank`.
 
-                :param max_rank: maximum possible `SFT rank` of the approximation. Expects a sequence of integers. If
-                 provided a sequence of two elements, then the first element is treated as a value of a multilinear part
-                 of rank with all equal components. If `None` provided, will be performed approximation with precision
-                 `eps`. For example, if `max_rank=[2, 5]` for three-dimensional tensor, then actual SFT rank is treated
-                 as `[2, 2, 5]'.
-                :param eps: precision of approximation as specified at (1).
-                :return: `Tucker` tensor.
+        :param max_rank: Maximum possible `SFT rank` of the approximation. Expects a sequence of integers. If
+         provided a sequence of two elements, then the first element is treated as a value of a multilinear part
+         of rank with all equal components. If `None` provided, will be performed approximation with precision
+         `eps`. For example, if `max_rank=[2, 5]` for three-dimensional tensor, then actual SFT rank is treated
+         as `[2, 2, 5]`.
+        :param eps: Precision of approximation.
+        :return: `Tucker` tensor.
         """
         if eps < 0:
             raise ValueError("eps should be greater or equal than 0")
@@ -280,11 +292,10 @@ class SFTucker(Tucker):
                         self.num_shared_factors, shared_factor)
 
     def flat_inner(self, other: "SFTucker"):
-        """
-        Calculate inner product of given `SF-Tucker` tensors.
+        """Calculate inner product of given `SFTucker` tensors.
 
-        :param other: `SF-Tucker` tensor.
-        :return: result of inner product.
+        :param other: `SFTucker` tensor.
+        :return: Result of inner product.
         """
         if self.num_shared_factors != other.num_shared_factors:
             raise ValueError("Amount of shared factors doesn't match. You probably should convert tensors to regular"
@@ -314,11 +325,10 @@ class SFTucker(Tucker):
         return (intermediate_core * other.core).sum()
 
     def k_mode_product(self, k: int, matrix: back.type()):
-        """
-        k-mode tensor-matrix contraction.
+        """k-mode tensor-matrix contraction.
 
-        :param k: from 0 to d-1.
-        :param matrix: must contain `self.rank[k]` columns.
+        :param k: Integer from 0 to d-1.
+        :param matrix: Must contain `self.rank[k]` columns.
         :return: `SFTucker` tensor.
         """
         if k < 0 or k >= self.ndim:
@@ -333,26 +343,21 @@ class SFTucker(Tucker):
         return SFTucker(self.core, regular_factors, self.num_shared_factors, self.shared_factor)
 
     def shared_modes_product(self, matrix: back.type()):
-        """
-        Tensor-matrix contraction by shared modes.
+        """Tensor-matrix contraction by shared modes.
 
-        :param matrix: must contain `self.rank[-1]` columns.
-        :return: `SF-Tucker` tensor.
+        :param matrix: Must contain `self.rank[-1]` columns.
+        :return: `SFTucker` tensor.
         """
-        # new_tensor = deepcopy(self)
-        # new_tensor.shared_factor = mat @ new_tensor.shared_factor
-        # return new_tensor
         new_shared_factor = matrix @ self.shared_factor
         return SFTucker(self.core, self.regular_factors, self.num_shared_factors, new_shared_factor)
 
     def norm(self, qr_based: bool = False):
-        """
-            Frobenius norm of `SF-Tucker` tensor.
+        """Frobenius norm of `SFTucker` tensor.
 
-            :param qr_based: whether to use stable QR-based implementation of norm, which is not differentiable,
-                or unstable but differentiable implementation based on inner product. By default, differentiable
-                implementation is used.
-            :return: non-negative number which is the Frobenius norm of `SF-Tucker` tensor.
+        :param qr_based: Whether to use stable QR-based implementation of norm, which is not differentiable,
+            or unstable but differentiable implementation based on inner product. By default, differentiable
+            implementation is used.
+        :return: Non-negative number which is the Frobenius norm of `SFTucker` tensor.
         """
         if qr_based:
             common_factors = [back.qr(self.regular_factors[i])[1] for i in range(self.dt)]
@@ -365,10 +370,9 @@ class SFTucker(Tucker):
         return back.sqrt(self.flat_inner(self))
 
     def to_dense(self):
-        """
-        Convert `SF-Tucker` tensor to dense representation.
+        """Convert `SFTucker` tensor to dense representation.
 
-        :return: dense d-dimensional representation of `SF-Tucker` tensor.
+        :return: Dense d-dimensional representation of `SFTucker` tensor.
         """
         core_letters = ascii_letters[:self.ndim]
         factor_letters = [f"{ascii_letters[self.ndim + i]}{ascii_letters[i]}" for i in range(self.ndim)]

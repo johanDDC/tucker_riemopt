@@ -8,6 +8,12 @@ from tucker_riemopt.tucker.matrix import TuckerMatrix
 
 
 class TangentVector:
+    """Special representation for tangent vectors of some `point` from the manifold.
+
+    :param point: Point from the manifold of tensors of fixed multilinear (`Tucker`) rank.
+    :param delta_core: Tangent vector delta core.
+    :param delta_factors: Tangent vector delta factors.
+    """
     point: Tucker
     delta_core: back.type()
     delta_factors: List[back.type()]
@@ -21,6 +27,12 @@ class TangentVector:
 
     @staticmethod
     def group_cores(corner_core, padding_core):
+        """Combine point's core and delta core into unite core of tangent vector.
+
+        :param corner_core: Corner block of the grouped core.
+        :param padding_core: Adjacent block of the grouped core.
+        :return: Grouped core.
+        """
         d = len(corner_core.shape)
         delta_shape = corner_core.shape
 
@@ -36,6 +48,10 @@ class TangentVector:
         return new_core
 
     def construct(self):
+        """Build `Tucker` tensor from `TangentVector` representation with at most twice bigger rank.
+
+        :return: `Tucker` tensor.
+        """
         grouped_core = self.group_cores(self.delta_core, self.point.core)
         factors = [back.concatenate([
             self.point.factors[i], self.delta_factors[i]
@@ -45,17 +61,16 @@ class TangentVector:
         return Tucker(grouped_core, factors)
 
     def linear_comb(self, a: float = 1, b: float = 1, xi: Union["TangentVector", None] = None):
-        """
-        Compute linear combination of this tangent vector of `X` (`self.point`) with either other tangent vector `xi` or
-        `X`. Although, linear combination may be obtained by addition operation of Tucker tensors, it is important to
-        note, that such operation leads to rank increasing. For instance, if `X` rank is `r`, then ranks of its
-        tangent vectors are `2r`, ant thus, the rank of the result of taking linear combination by naive addition is
-        `4r`. On the other hand, this function obtains linear combination efficiently without increase of the rank. The
+        """Compute linear combination of this tangent vector of `X` (`self.point`) with either other tangent vector `xi` or
+         `X`. Although, linear combination may be obtained by addition operation of Tucker tensors, it is important to
+         note, that such operation leads to rank increasing. For instance, if `X` rank is `r`, then ranks of its
+         tangent vectors are `2r`, ant thus, the rank of the result of taking linear combination by naive addition is
+         `4r`. On the other hand, this function obtains linear combination efficiently without increase of the rank. The
          rank of the result is always `2r`.
 
-        :param a: parameter of the linear combination.
-        :param b: parameter of the linear combination.
-        :param xi: if `None`, that linear combination with manifold point `X` will be computed. With `xi` otherwise.
+        :param a: Parameter of the linear combination.
+        :param b: Parameter of the linear combination.
+        :param xi: If `None`, that linear combination with manifold point `X` will be computed. With `xi` otherwise.
         :return: `a * self + b * xi` if `xi` is not `None` and `a * self + b * self.point` otherwise.
         """
         if xi is None:
@@ -67,14 +82,13 @@ class TangentVector:
 
 
 def grad(f: Callable[[Tucker], float], X: Tucker, retain_graph=False) -> Tuple[TangentVector, float]:
-    """
-    Compute the Riemannian gradient of the smooth scalar valued function `f` at point `X`. The result is the tangent
-    vector of `X`. Also returns value `f(X)`.
+    """Compute the Riemannian gradient of the smooth scalar valued function `f` at point `X`. The result is the tangent
+     vector of `X`. Also returns value `f(X)`.
 
-    :param f: smooth scalar valued function.
-    :param X: point from the manifold.
-    :param retain_graph: optional argument, which may be provided to autodiff framework (e.g. pytorch).
-    :return: a tangent vector of `X` which is the Riemannian gradient of `f` and value `f(X)`.
+    :param f: Smooth scalar valued function.
+    :param X: Point from the manifold.
+    :param retain_graph: Optional argument, which may be provided to autodiff framework (e.g. pytorch).
+    :return: A tangent vector of `X` which is the Riemannian gradient of `f` and value `f(X)`.
     """
     fx = None
     modes = list(np.arange(0, X.ndim))
@@ -99,12 +113,11 @@ def grad(f: Callable[[Tucker], float], X: Tucker, retain_graph=False) -> Tuple[T
 
 
 def project(X: Tucker, xi: Tucker, retain_graph=False) -> TangentVector:
-    """
-    Project `xi` onto the tangent space of `X`.
+    """Project `xi` onto the tangent space of `X`.
 
-    :param X: point from the manifold.
-    :param xi: arbitrary tensor represented in Tucker format.
-    :return: result of projection of `xi` onto the tangent space of `X`.
+    :param X: Point from the manifold.
+    :param xi: Arbitrary tensor represented in Tucker format.
+    :return: Result of projection of `xi` onto the tangent space of `X`.
     """
     f = lambda x: x.flat_inner(xi)
     return grad(f, X, retain_graph)[0]
