@@ -26,6 +26,10 @@ See `examples` folder to dive into `tucker_riemopt` basics.
 
 [//]: # (Also we've implemented [`SparseTucker`]&#40;https://github.com/johanDDC/tucker_riemopt/blob/master/tucker_riemopt/tucker.py&#41; class for sparse representation of Tucker tensor. May be useful for tensor completion task or RecSys.)
 
+## Documentation
+
+Detailed information may be found [here](https://johanddc.github.io/tucker_riemopt/).
+
 ## License
 MIT License
 
