@@ -8,28 +8,42 @@ from tucker_riemopt import Tucker
 
 @dataclass()
 class TuckerMatrix(Tucker):
+    """Tucker representation for operators.
+
+    :param core: The core tensor of the decomposition.
+    :param factors: The list of factors of the decomposition.
+    :param n: Dimensionality of source space (see ``from_dense`` method).
+    :param m: Dimensionality of target space (see ``from_dense`` method).
+    """
     n: Union[Sequence[int], None] = None
     m: Union[Sequence[int], None] = None
 
     @classmethod
-    def from_dense(cls, T: back.type(), n: Union[Sequence[int], None] = None, m: Union[Sequence[int], None] = None,
+    def from_dense(cls, dense_tensor: back.type(), n: Union[Sequence[int], None] = None, m: Union[Sequence[int], None] = None,
                    eps=1e-14):
+        """Convert dense tensor into `TuckerMatrix` representation. The resul is tensor that represents linear operator
+        from R^N to R^M.
+
+        :param dense_tensor: Dense tensor that will be factorized.
+        :param n: Sequence of ints (n_1, ..., n_a) such that N = n_1 * ... * n_a.
+        :param m: Sequence of ints (m_1, ..., m_b) such that M = m_1 * ... * m_b.
+        :param eps: Precision of approximation.
+        :return: `TuckerMatrix` representation of the provided dense tensor.
+        """
         if n is None or m is None:
             raise ValueError("n and m parameter must be specialized for matrices")
-        T = cls._hosvd(T, eps=eps)
-        return cls(T.core, T.factors, n, m)
+        dense_tensor = cls._hosvd(dense_tensor, eps=eps)
+        return cls(dense_tensor.core, dense_tensor.factors, n, m)
 
     def __matmul__(self, other: Union[back.type(), Tucker, "TuckerMatrix"]):
-        """
-        Performs matrix multiplication of tensors. If other's ndim > matrix ndim, then performs batch matmul over last
+        """Perform matrix multiplication of tensors. If other's ndim > matrix ndim, then perform batch matmul over last
         ndim modes.
 
-        :param other: can be dense tensor, Tucker or TuckerMatrix. If dense tensor, then treated as vector and matvec
+        :param other: Can be dense tensor, Tucker or TuckerMatrix. If dense tensor, then treated as vector and matvec
         operation is performed. The result is also a dense tensor. If `Tucker`, then treated as vector and matvec
         operation is performed. The result is also a Tucker. Else matmul operation is performed and another matrix is
         returned.
-
-        :return: dense tensor, Tucker or TuckerMatrix, depends on type of `other`.
+        :return: Dense tensor, Tucker or TuckerMatrix, depends on type of `other`.
         """
         if type(other) == back.type():
             core_letters = ascii_letters[:self.ndim]

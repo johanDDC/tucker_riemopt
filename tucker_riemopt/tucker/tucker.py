@@ -15,13 +15,13 @@ ML_rank = Union[int, Sequence[int]]
 
 @dataclass()
 class Tucker:
+    """Tucker tensor factorisation.
+
+    :param core: The core tensor of the decomposition.
+    :param factors: The list of factors of the decomposition.
+    """
     core: back.type() = field(default_factory=back.tensor)
     factors: List[back.type()] = field(default_factory=list)
-    """
-    Tucker tensor factorisation. We represent Tucker tensor as SF-Tucker tensor with no shared factors. One may note,
-    that more valid formulation is to represent Tucker as SF-Tucker with one shared factor, but we do not employ
-    this approach for the sake of the convenient coding.
-    """
 
     @staticmethod
     def __HOOI(sparse_tensor, sparse_tucker, contraction_dict, maxiter):
@@ -105,45 +105,24 @@ class Tucker:
 
     @classmethod
     def from_dense(cls, dense_tensor: back.type(), eps=1e-14):
-        """
-        Converts dense tensor into Tucker representation.
-        .. math::
-            (1): \quad \|A - T_{optimal}\|_F = \eps \|A\|_F
+        """Convert dense tensor into `Tucker` representation.
 
-        :param eps: precision of approximation as specified at (1).
-        :return: Tucker representation of the provided dense tensor.
+        :param dense_tensor: Dense tensor that will be factorized.
+        :param eps: Precision of approximation.
+        :return: `Tucker` representation of the provided dense tensor.
         """
         return cls._hosvd(dense_tensor, eps=eps)
 
     @classmethod
     def sparse2tuck(cls, sparse_tensor: SparseTensor, max_rank: ML_rank = None, maxiter: Union[int, None] = 5):
-        """
-            Gains sparse tensor and constructs its Sparse Tucker decomposition.
+        """Accept sparse tensor and construct its Sparse Tucker decomposition.
 
-            Parameters
-            ----------
-            sparse_tensor: SparseTensor
-                Tensor in dense format
-
-            max_rank: int, Sequence[int] or None
-
-                - If a number, than defines the maximal `rank` of the result.
-
-                - If a list of numbers, than `max_rank` length should be d
-                  (number of dimensions) and `max_rank[i]`
-                  defines the (i)-th `rank` of the result.
-
-                  The following two versions are equivalent
-
-                  - ``max_rank = r``
-
-                  - ``max_rank = [r] * d``
-
-            maxiter: int or None
-
-                - If int, than HOOI algorithm will be launched, until provided number of iterations not reached
-
-                - If None, no additional algorithms will be launched (note, that error in that case can be large)
+        :param sparse_tensor: Tensor in sparse format.
+        :param max_rank: If number, then defines the maximal `rank` of the result; If a list of numbers, then `max_rank`
+         length should be d (number of dimensions) and `max_rank[i]` defines the (i)-th `rank` of the result. The
+         following two versions are equivalent: ``max_rank = r`` and ``max_rank = [r] * d``.
+        :param maxiter: If int, the HOOI algorithm will be executed until the specified number of iterations is reached.
+         If None, no additional algorithms will be launched (note, that approximation error in that case may be large).
         """
         factors = []
         contraction_dict = dict()
@@ -163,39 +142,38 @@ class Tucker:
 
     @property
     def ndim(self) -> int:
-        """
-        :return: dimensionality of the tensor.
+        """Number of dimensions of the tensor.
+
+        :return: Dimensionality of the tensor.
         """
         return len(self.core.shape)
 
     @property
     def shape(self) -> Sequence[int]:
-        """
-        :return: sequence represents the shape of the Tucker tensor.
+        """Shape of `Tucker` tensor.
+
+        :return: Sequence that represents the shape of `Tucker` tensor.
         """
         return [self.factors[i].shape[0] for i in range(self.ndim)]
 
     @property
     def rank(self) -> Sequence[int]:
-        """
-        Get ML-rank of the Tucker tensor.
+        """Get multilinear rank of `Tucker` tensor.
 
-        :return: sequence represents the ML-rank of tensor.
+        :return: Sequence that represents the multilinear rank of tensor.
         """
         return self.core.shape
 
     @property
     def dtype(self) -> type:
-        """
-        Get dtype of the elements in the Tucker tensor.
+        """Get dtype of the elements of the tensor.
 
         :return: dtype.
         """
         return self.core.dtype
 
     def __add__(self, other: "Tucker"):
-        """
-        Add two `Tucker` tensors. The ML-rank of the result is the sum of ML-ranks of the operands.
+        """Add two `Tucker` tensors. Multilinear rank of the result is the sum of multilinear ranks of the operands.
 
         :param other: `Tucker` tensor.
         :return: `Tucker` tensor.
@@ -211,8 +189,7 @@ class Tucker:
         return Tucker(core, factors)
 
     def __mul__(self, other: "Tucker"):
-        """
-        Elementwise multiplication of two `Tucker` tensors.
+        """Elementwise multiplication of two `Tucker` tensors.
 
         :param other: `Tucker` tensor.
         :return: `Tucker` tensor.
@@ -226,15 +203,12 @@ class Tucker:
         return Tucker(core, factors)
 
     def __rmul__(self, a: float):
-        """
-        Elementwise multiplication of `Tucker` tensor by scalar.
+        """Elementwise multiplication of `Tucker` tensor by scalar.
 
-        :param a: scalar value.
+        :param a: Scalar value.
         :return: `Tucker` tensor.
         """
         return Tucker(a * self.core, self.factors)
-        # new_tensor = deepcopy(self)
-        # return Tucker(a * new_tensor.core, new_tensor.factors)
 
     def __neg__(self):
         return (-1) * self
@@ -244,16 +218,11 @@ class Tucker:
         return self + other
 
     def __getitem__(self, key):
-        """
-            Returns element or a batch of element on positions provided in key parameter.
+        """Return element or a batch of element on positions provided in key parameter.
 
-            Parameters
-            ----------
-            key : Sequence[Sequence[int]] or  Sequence[Sequence[Sequence[int]]]
-                arrays of indices in dense tensor, or batch of indices.
-                For instance A[[i], [j], [k]] will return element on (i, j, k) position
-                A[[i1, i2], [j1, j2], [k1, k2]] will return 2 elements on positions (i1, j1, k1) and
-                (i2, j2, k2) correspondingly.
+        :param key: Arrays of indices in dense tensor, or batch of indices. For instance, A[[i], [j], [k]] will return
+         element on (i, j, k) position A[[i1, i2], [j1, j2], [k1, k2]] will return 2 elements on positions (i1, j1, k1)
+         and (i2, j2, k2) correspondingly.
         """
         if type(key[0]) is int:
             return back.einsum("ijk,i,j,k->", self.core, self.factors[0][key[0]],
@@ -266,16 +235,13 @@ class Tucker:
             return back.einsum(einsum_rule, self.core, *new_factors)
 
     def round(self, max_rank: ML_rank = None, eps=1e-14):
-        """
-        Perform rounding procedure. The `Tucker` tensor will be approximated by `Tucker` tensor with rank
+        """Perform rounding procedure. The `Tucker` tensor will be approximated by `Tucker` tensor with rank
         at most `max_rank`.
-        .. math::
-            (1): \quad \|A - T_{optimal}\|_F = \eps \|A\|_F
 
-        :param max_rank: maximum possible `ML-rank` of the approximation. Expects a sequence of integers,
-         but if a single number is provided, it will be treated as a sequence with all components equal. If
-         `None` provided, will be performed approximation with precision `eps`.
-        :param eps: precision of approximation as specified at (1).
+        :param max_rank: Maximum possible multilinear rank of the approximation. Expects a sequence of integers, but if
+         a single number is provided, it will be treated as a sequence with all components equal. If `None` provided,
+         will be performed approximation with precision `eps`.
+        :param eps: Precision of the approximation.
         :return: `Tucker` tensor.
         """
 
@@ -302,11 +268,10 @@ class Tucker:
         return Tucker(intermediate_core.core[tuple(rank_slices)], factors)
 
     def flat_inner(self, other: "Tucker") -> float:
-        """
-        Calculate inner product of given `Tucker` tensors.
+        """Calculate inner product of given `Tucker` tensors.
 
         :param other: `Tucker` tensor.
-        :return: result of inner product.
+        :return: Result of inner product.
         """
         core_letters = ascii_letters[:self.ndim]
         rev_letters = ascii_letters[self.ndim:][::-1]
@@ -325,30 +290,24 @@ class Tucker:
         return (intermediate_core * other.core).sum()
 
     def k_mode_product(self, k: int, matrix: back.type()):
-        """
-        k-mode tensor-matrix contraction.
+        """k-mode tensor-matrix contraction.
 
-        :param k: from 0 to d-1.
-        :param matrix: must contain `self.rank[k]` columns.
+        :param k: Integer from 0 to d-1.
+        :param matrix: Must contain `self.rank[k]` columns.
         :return: `Tucker` tensor.
         """
         if k < 0 or k >= self.ndim:
             raise ValueError(f"k should be from 0 to {self.ndim - 1}")
 
         new_factors = self.factors[:k] + [matrix @ self.factors[k]] + self.factors[k + 1:]
-        # new_tensor = deepcopy(self)
-        # new_tensor.factors[k] = matrix @ new_tensor.factors[k]
-        # return new_tensor
         return Tucker(self.core, new_factors)
 
     def norm(self, qr_based: bool = False) -> float:
-        """
-        Frobenius norm of `Tucker` tensor.
+        """Frobenius norm of `Tucker` tensor.
 
-        :param qr_based: whether to use stable QR-based implementation of norm, which is not differentiable,
-            or unstable but differentiable implementation based on inner product. By default, differentiable
-            implementation used.
-        :return: non-negative number which is the Frobenius norm of `Tucker` tensor.
+        :param qr_based: Whether to use stable QR-based implementation of norm, which is not differentiable, or unstable
+         but differentiable implementation based on inner product. By default, differentiable implementation used.
+        :return: Non-negative number which is the Frobenius norm of `Tucker` tensor.
         """
         if qr_based:
             core_factors = [back.qr(self.factors[i])[1] for i in range(self.ndim)]
@@ -359,10 +318,9 @@ class Tucker:
         return back.sqrt(self.flat_inner(self))
 
     def to_dense(self) -> back.type():
-        """
-        Convert `Tucker` tensor to dense representation.
+        """Convert `Tucker` tensor to dense representation.
 
-        :return: dense d-dimensional representation of `Tucker` tensor.
+        :return: Dense d-dimensional representation of `Tucker` tensor.
         """
         core_letters = ascii_letters[:self.ndim]
         factor_letters = [f"{ascii_letters[self.ndim + i]}{ascii_letters[i]}" for i in range(self.ndim)]
