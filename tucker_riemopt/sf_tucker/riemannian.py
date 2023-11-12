@@ -67,6 +67,29 @@ class TangentVector:
                                   self.point.n, self.point.m)
         return SFTucker(grouped_core, regular_factors, self.point.num_shared_factors, shared_factor)
 
+    def __rmul__(self, a: float):
+        """Elementwise multiplication of `TangentVector` by scalar.
+
+        :param a: Scalar value.
+        :return: `TangentVector` tensor.
+        """
+        return TangentVector(self.point, a * self.delta_core, [a * factor for factor in self.delta_regular_factors],
+                             a * self.delta_shared_factor)
+
+    def __add__(self, other: "TangentVector"):
+        """Addition of two `TangentVector`s. It is assumed that `other` is a vector from the same tangent space
+        (the `self.point` and `other.point` fields are the same). Otherwise, the result may be incorrect.
+
+        :param other: `TangentVector` from the same tangent space.
+        :return: `TangentVector` from the same tangent space.
+        """
+        new_delta_core = self.delta_core + other.delta_core
+        new_delta_regular_factors = []
+        for self_factor, other_factor in zip(self.delta_regular_factors, other.delta_regular_factors):
+            new_delta_regular_factors.append(self_factor + other_factor)
+        new_delta_shared_factor = self.delta_shared_factor + other.delta_shared_factor
+        return TangentVector(self.point, new_delta_core, new_delta_regular_factors, new_delta_shared_factor)
+
     def linear_comb(self, a: float = 1, b: float = 1, xi: Union["TangentVector", None] = None):
         """Compute linear combination of this tangent vector of `X` (`self.point`) with either other tangent vector `xi`
          or `X`. Although, linear combination may be obtained by addition operation of SF-Tucker tensors, it is
