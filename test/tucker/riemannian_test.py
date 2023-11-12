@@ -66,6 +66,26 @@ class RiemannianTest(TestCase):
         assert np.allclose(back.to_numpy(tg_vector1.construct().to_dense()),
                            back.to_numpy(tg_vector2.construct().to_dense()), atol=1e-5)
 
+    def testAdd(self):
+        np.random.seed(229)
+
+        T = self.createTestTensor(4)
+        tg_vector1, _ = TuckerRiemannian.grad(self.f, T)
+        tg_vector2 = TuckerRiemannian.TangentVector(T, back.randn(T.core.shape),
+                                                    [back.randn(T.factors[0].shape) for _ in range(T.ndim)])
+        addition = tg_vector1 + tg_vector2
+        dumb_addition = tg_vector1.construct() + tg_vector2.construct()
+        assert (addition.construct() - dumb_addition).norm(qr_based=True) / dumb_addition.norm(qr_based=True) <= 1e-6
+
+    def testScalarMultiplication(self):
+        np.random.seed(229)
+
+        T = self.createTestTensor(4)
+        tg_vector, _ = TuckerRiemannian.grad(self.f, T)
+        rmul = 420 * tg_vector
+        dumb_rmul = 420 * tg_vector.construct()
+        assert (rmul.construct() - dumb_rmul).norm(qr_based=True) / dumb_rmul.norm(qr_based=True) <= 1e-6
+
     def testLinearComb(self):
         np.random.seed(229)
 
@@ -74,7 +94,7 @@ class RiemannianTest(TestCase):
         T = self.createTestTensor(4)
         tg_vector1, _ = TuckerRiemannian.grad(self.f, T)
         tg_vector2 = TuckerRiemannian.TangentVector(T, back.randn(T.core.shape),
-                                                      [back.randn(T.regular_factors[0].shape) for _ in range(T.ndim)])
+                                                      [back.randn(T.factors[0].shape) for _ in range(T.ndim)])
 
         dumb_combination = a * tg_vector1.construct() + b * tg_vector2.construct()
         wise_combination = tg_vector1.linear_comb(a, b, tg_vector2)
