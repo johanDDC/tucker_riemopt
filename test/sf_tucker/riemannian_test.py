@@ -98,6 +98,27 @@ class RiemoptTest(TestCase):
         assert np.allclose(back.to_numpy(tg_vector1.construct().to_dense()),
                            back.to_numpy(tg_vector2.construct().to_dense()), atol=1e-5)
 
+    def testAdd(self):
+        np.random.seed(229)
+
+        T = self.createTestTensor(4)
+        tg_vector1, _ = SFTuckerRiemannian.grad(self.f, T)
+        tg_vector2 = SFTuckerRiemannian.TangentVector(T, back.randn(T.core.shape),
+                                                      [back.randn(T.regular_factors[0].shape)],
+                                                      back.randn(T.shared_factor.shape))
+        addition = tg_vector1 + tg_vector2
+        dumb_addition = tg_vector1.construct() + tg_vector2.construct()
+        assert (addition.construct() - dumb_addition).norm(qr_based=True) / dumb_addition.norm(qr_based=True) <= 1e-6
+
+    def testScalarMultiplication(self):
+        np.random.seed(229)
+
+        T = self.createTestTensor(4)
+        tg_vector, _ = SFTuckerRiemannian.grad(self.f, T)
+        rmul = 420 * tg_vector
+        dumb_rmul = 420 * tg_vector.construct()
+        assert (rmul.construct() - dumb_rmul).norm(qr_based=True) / dumb_rmul.norm(qr_based=True) <= 1e-6
+
     def testLinearComb(self):
         np.random.seed(229)
 
