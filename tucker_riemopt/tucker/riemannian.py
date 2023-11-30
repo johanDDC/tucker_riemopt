@@ -1,6 +1,7 @@
 import numpy as np
 
 from typing import Union, List, Callable, Tuple
+from string import ascii_letters
 
 from tucker_riemopt import Tucker
 from tucker_riemopt import backend as back
@@ -81,12 +82,22 @@ class TangentVector:
             new_delta_factors.append(self_factor + other_factor)
         return TangentVector(self.point, new_delta_core, new_delta_factors)
 
+    def norm(self):
+        norms = back.norm(self.delta_core) ** 2
+        core_letters = ascii_letters[:self.point.ndim]
+        for i, factor in enumerate(self.delta_factors):
+            R = back.qr(factor)[1]
+            norms += back.norm(
+                back.einsum(f"{core_letters},y{core_letters[i]}->{core_letters[:i]}y{core_letters[i + 1:]}",
+                            self.delta_core, R)
+            ) ** 2
+        return back.sqrt(norms)
 
     def linear_comb(self, a: float = 1, b: float = 1, xi: Union["TangentVector", None] = None):
         """Compute linear combination of this tangent vector of `X` (`self.point`) with either other tangent vector `xi` or
          `X`. Although, linear combination may be obtained by addition operation of Tucker tensors, it is important to
          note, that such operation leads to rank increasing. For instance, if `X` rank is `r`, then ranks of its
-         tangent vectors are `2r`, ant thus, the rank of the result of taking linear combination by naive addition is
+         tangent vectors are `2r`, and thus, the rank of the result of taking linear combination by naive addition is
          `4r`. On the other hand, this function obtains linear combination efficiently without increase of the rank. The
          rank of the result is always `2r`.
 

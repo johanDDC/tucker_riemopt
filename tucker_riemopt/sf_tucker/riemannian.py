@@ -90,6 +90,25 @@ class TangentVector:
         new_delta_shared_factor = self.delta_shared_factor + other.delta_shared_factor
         return TangentVector(self.point, new_delta_core, new_delta_regular_factors, new_delta_shared_factor)
 
+    def norm(self):
+        norms = back.norm(self.delta_core) ** 2
+        core_letters = ascii_letters[:self.point.ndim]
+        for i, factor in enumerate(self.delta_regular_factors):
+            R = back.qr(factor)[1]
+            norms += back.norm(
+                back.einsum(f"{core_letters},y{core_letters[i]}->{core_letters[:i]}y{core_letters[i + 1:]}",
+                            self.delta_core, R)
+            ) ** 2
+        ds = self.point.ds
+        R = back.qr(self.delta_shared_factor)[1]
+        R = [R] * ds
+        contract_idx = [f"{ascii_letters[-i-1]}{core_letters[-i-1]}" for i in range(ds)]     
+        norms += back.norm(
+            back.einsum(f"{core_letters},{','.join(contract_idx)}->{core_letters[:-ds]}{ascii_letters[-ds:]}",
+                        self.delta_core, *R)
+        ) ** 2
+        return back.sqrt(norms)
+
     def linear_comb(self, a: float = 1, b: float = 1, xi: Union["TangentVector", None] = None):
         """Compute linear combination of this tangent vector of `X` (`self.point`) with either other tangent vector `xi`
          or `X`. Although, linear combination may be obtained by addition operation of SF-Tucker tensors, it is
