@@ -169,4 +169,14 @@ class RiemoptTest(TestCase):
             riem_grad = back.reshape(riem_grad, (8, 8))
 
             assert(np.allclose(back.to_numpy(eucl_grad), back.to_numpy(riem_grad.to_dense()), atol=1e-5))
+            
+    def testNorm(self):
+        T = self.createTestTensor(4)
+        tg_vector1, _ = SFTuckerRiemannian.grad(self.f, T)
+        true_norm = tg_vector1.construct().norm(qr_based=True)
+        computed_norm = tg_vector1.norm()
+        
+        assert (true_norm - computed_norm) < 1e-5
+
+
 

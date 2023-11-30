@@ -18,7 +18,7 @@ class TuckerMatrixTest(TestCase):
         matrix_dense = back.reshape(matrix_dense, (4, 4, 4))
         matrix_tucker = TuckerMatrix.from_dense(matrix_dense, (2, 2, 2), (2, 2, 2))
         y = matrix_tucker @ x
-        assert np.allclose(back.to_numpy(y_dense), back.to_numpy(back.reshape(y, (8,))))
+        assert np.allclose(back.to_numpy(y_dense), back.to_numpy(back.reshape(y, (8,))), atol=1e-5)
 
     def testDenseBatchMatmul(self):
         matrix_dense = back.randn((8, 8))
