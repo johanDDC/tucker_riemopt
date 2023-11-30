@@ -83,6 +83,10 @@ class TangentVector:
         return TangentVector(self.point, new_delta_core, new_delta_factors)
 
     def norm(self):
+        """Norm of tangent vector. This method is not differentiable as applies series of QR decompositions.
+
+        :return: Frobenius norm of tangent vector.
+        """
         norms = back.norm(self.delta_core) ** 2
         core_letters = ascii_letters[:self.point.ndim]
         for i, factor in enumerate(self.delta_factors):
