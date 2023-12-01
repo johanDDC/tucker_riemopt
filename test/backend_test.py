@@ -1,7 +1,7 @@
 from unittest import TestCase
 from tucker_riemopt import set_backend
 
-from tucker import tucker_test
+import tucker.tucker_test as tucker_test
 
 class BackendTest(TestCase):
     def testJaxBackend(self):
