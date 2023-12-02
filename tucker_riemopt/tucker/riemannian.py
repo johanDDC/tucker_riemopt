@@ -128,8 +128,6 @@ def grad(f: Callable[[Tucker], float], X: Tucker, retain_graph=False) -> Tuple[T
     :return: A tangent vector of `X` which is the Riemannian gradient of `f` and value `f(X)`.
     """
     fx = None
-    modes = list(np.arange(0, X.ndim))
-
     def h(delta_core, delta_factors):
         nonlocal X, fx
         tangent_X = TangentVector(X, delta_core, delta_factors).construct()
@@ -138,13 +136,12 @@ def grad(f: Callable[[Tucker], float], X: Tucker, retain_graph=False) -> Tuple[T
 
     dh = back.grad(h, [0, 1], retain_graph=retain_graph)
     dS, dV = dh(X.core, [back.zeros_like(X.factors[i]) for i in range(X.ndim)])
-    dV = [dV[i] - X.factors[i] @ (X.factors[i].T @ dV[i]) for i in range(X.ndim)]
+    core_letters = ascii_letters[:X.ndim]
     for i in range(X.ndim):
-        unfolding_core = back.transpose(X.core, [modes[i], *(modes[:i] + modes[i + 1:])])
-        unfolding_core = back.reshape(unfolding_core, (X.core.shape[i], -1), order="F")
-        gram_core = unfolding_core @ unfolding_core.T
-        L = back.lu_factor(gram_core)
-        dV[i] = back.lu_solve(L, dV[i].T).T
+        dV[i] = dV[i] - X.factors[i] @ (X.factors[i].T @ dV[i])
+        gram_core = back.einsum(f"{core_letters[:i]}X{core_letters[i+1:]},{core_letters[:i]}Y{core_letters[i+1:]}->XY",
+                              X.core, X.core)
+        dV[i] = back.cho_solve(dV[i].T, back.cho_factor(gram_core)[0]).T
 
     return TangentVector(X, dS, dV), fx
 
