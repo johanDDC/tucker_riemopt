@@ -146,7 +146,6 @@ def grad(f: Callable[[SFTucker], float], X: SFTucker, retain_graph=False) -> Tup
     :return: A tangent vector of `X` which is the Riemannian gradient of `f` and value `f(X)`.
     """
     fx = None
-    modes = list(np.arange(0, X.ndim))
 
     def h(delta_core, delta_regular_factors, delta_shared_factor):
         nonlocal X, fx
@@ -158,35 +157,24 @@ def grad(f: Callable[[SFTucker], float], X: SFTucker, retain_graph=False) -> Tup
 
     dS, dV, dU = dh(X.core, [back.zeros_like(X.regular_factors[i]) for i in range(X.dt)],
                     back.zeros_like(X.shared_factor))
-    dV = [dV[i] - X.regular_factors[i] @ (X.regular_factors[i].T @ dV[i]) for i in range(X.dt)]
     dU = dU - X.shared_factor @ (X.shared_factor.T @ dU)
+    core_letters = ascii_letters[:X.ndim]
     # non-sf_tucker factors
     for i in range(X.dt):
-        unfolding_core = back.transpose(X.core, [modes[i], *(modes[:i] + modes[i + 1:])])
-        unfolding_core = back.reshape(unfolding_core, (X.core.shape[i], -1), order="F")
-        gram_core = unfolding_core @ unfolding_core.T
-        L = back.lu_factor(gram_core)
-        dV[i] = back.lu_solve(L, dV[i].T).T
+        dV[i] = dV[i] - X.factors[i] @ (X.factors[i].T @ dV[i])
+        gram_core = back.einsum(f"{core_letters[:i]}X{core_letters[i+1:]},{core_letters[:i]}Y{core_letters[i+1:]}->XY",
+                              X.core, X.core)
+        dV[i] = back.cho_solve(dV[i].T, back.cho_factor(gram_core)[0]).T
     # sf_tucker factors
+    dt = X.dt
     sum_core_unfoldings = None
-    prefix = ascii_letters[:X.dt]
-    postfix = ascii_letters[X.dt:X.ndim - 1]
     for i in range(X.ds):
-        script = ",".join([
-            "".join([prefix, "x", postfix]),
-            "".join([prefix, "y", postfix]),
-        ]) + "->xy"
-        unfolding = back.einsum(script, X.core, X.core)
-        if sum_core_unfoldings is None:
-            sum_core_unfoldings = unfolding
-        else:
-            sum_core_unfoldings += unfolding
-        if len(postfix) > 0:
-            prefix = "".join([prefix, postfix[0]])
-            postfix = postfix[1:]
+        unfolding = back.einsum(
+            f"{core_letters[:dt + i]}X{core_letters[dt + i + 1:]},{core_letters[:dt + i]}Y{core_letters[dt + i + 1:]}->XY",
+                              X.core, X.core)
+        sum_core_unfoldings = unfolding if sum_core_unfoldings is None else sum_core_unfoldings + unfolding
 
-    L = back.lu_factor(sum_core_unfoldings)
-    dU = back.lu_solve(L, dU.T).T
+    dU = back.cho_solve(dU.T, back.cho_factor(sum_core_unfoldings)[0]).T
     return TangentVector(X, dS, dV, dU), fx
 
 

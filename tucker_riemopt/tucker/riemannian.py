@@ -128,8 +128,6 @@ def grad(f: Callable[[Tucker], float], X: Tucker, retain_graph=False) -> Tuple[T
     :return: A tangent vector of `X` which is the Riemannian gradient of `f` and value `f(X)`.
     """
     fx = None
-    modes = list(np.arange(0, X.ndim))
-
     def h(delta_core, delta_factors):
         nonlocal X, fx
         tangent_X = TangentVector(X, delta_core, delta_factors).construct()
@@ -138,7 +136,6 @@ def grad(f: Callable[[Tucker], float], X: Tucker, retain_graph=False) -> Tuple[T
 
     dh = back.grad(h, [0, 1], retain_graph=retain_graph)
     dS, dV = dh(X.core, [back.zeros_like(X.factors[i]) for i in range(X.ndim)])
-    # dV = [dV[i] - X.factors[i] @ (X.factors[i].T @ dV[i]) for i in range(X.ndim)]
     core_letters = ascii_letters[:X.ndim]
     for i in range(X.ndim):
         dV[i] = dV[i] - X.factors[i] @ (X.factors[i].T @ dV[i])
