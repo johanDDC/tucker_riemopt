@@ -101,14 +101,14 @@ class TangentVector:
             R = back.qr(factor)[1]
             norms += back.norm(
                 back.einsum(f"{core_letters},y{core_letters[i]}->{core_letters[:i]}y{core_letters[i + 1:]}",
-                            self.delta_core, R)
+                            self.point.core, R)
             ) ** 2
         dt, ds = self.point.dt, self.point.ds
         R = back.qr(self.delta_shared_factor)[1]
         for i in range(ds):
             norms += back.norm(
                 back.einsum(f"{core_letters},y{core_letters[dt + i]}->{core_letters[:dt + i]}y{core_letters[dt + i + 1:]}",
-                            self.delta_core, R)
+                            self.point.core, R)
             ) ** 2
         return back.sqrt(norms)
 
