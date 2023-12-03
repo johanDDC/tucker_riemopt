@@ -175,7 +175,7 @@ class RiemoptTest(TestCase):
         true_norm = tg_vector1.construct().norm(qr_based=True)
         computed_norm = tg_vector1.norm()
         
-        assert (true_norm - computed_norm) / true_norm < 1e-5
+        assert (true_norm - computed_norm) / true_norm < 1e-6
 
 
 
