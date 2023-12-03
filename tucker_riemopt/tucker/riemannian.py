@@ -68,6 +68,9 @@ class TangentVector:
         :return: `TangentVector` tensor.
         """
         return TangentVector(self.point, a * self.delta_core, [a * factor for factor in self.delta_factors])
+    
+    def __neg__(self):
+        return (-1) * self
 
     def __add__(self, other: "TangentVector"):
         """Addition of two `TangentVector`s. It is assumed that `other` is a vector from the same tangent space

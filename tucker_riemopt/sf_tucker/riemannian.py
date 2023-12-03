@@ -75,6 +75,9 @@ class TangentVector:
         """
         return TangentVector(self.point, a * self.delta_core, [a * factor for factor in self.delta_regular_factors],
                              a * self.delta_shared_factor)
+        
+    def __neg__(self):
+        return (-1) * self
 
     def __add__(self, other: "TangentVector"):
         """Addition of two `TangentVector`s. It is assumed that `other` is a vector from the same tangent space
