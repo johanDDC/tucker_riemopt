@@ -115,28 +115,6 @@ class TangentVector:
             ) ** 2
         return back.sqrt(norms)
 
-    def linear_comb(self, a: float = 1, b: float = 1, xi: Union["TangentVector", None] = None):
-        """Compute linear combination of this tangent vector of `X` (`self.point`) with either other tangent vector `xi`
-         or `X`. Although, linear combination may be obtained by addition operation of SF-Tucker tensors, it is
-         important to note, that such operation leads to rank increasing. For instance, if `X` rank is `r`, then ranks
-         of its tangent vectors are `2r`, ant thus, the rank of the result of taking linear combination by naive
-         addition is `4r`. On the other hand, this function obtains linear combination efficiently without increase of
-         the rank. The rank of the result is always `2r`.
-
-        :param a: Parameter of the linear combination.
-        :param b: Parameter of the linear combination.
-        :param xi: If `None`, that linear combination with manifold point `X` will be computed. With `xi` otherwise.
-        :return: `a * self + b * xi` if `xi` is not `None` and `a * self + b * self.point` otherwise.
-        """
-        if xi is None:
-            xi = TangentVector(self.point)
-
-        regular_factors = [a * self.delta_regular_factors[i] + b * xi.delta_regular_factors[i] for i in
-                           range(self.point.dt)]
-        shared_factor = a * self.delta_shared_factor + b * xi.delta_shared_factor
-        core = a * self.delta_core + b * xi.delta_core
-        return TangentVector(self.point, core, regular_factors, shared_factor)
-
 
 def grad(f: Callable[[SFTucker], float], X: SFTucker, retain_graph=False) -> Tuple[TangentVector, float]:
     """Compute the Riemannian gradient of the smooth scalar valued function `f` at point `X`. The result is the tangent
