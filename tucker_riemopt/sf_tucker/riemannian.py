@@ -103,14 +103,13 @@ class TangentVector:
                 back.einsum(f"{core_letters},y{core_letters[i]}->{core_letters[:i]}y{core_letters[i + 1:]}",
                             self.delta_core, R)
             ) ** 2
-        ds = self.point.ds
+        dt, ds = self.point.dt, self.point.ds
         R = back.qr(self.delta_shared_factor)[1]
-        R = [R] * ds
-        contract_idx = [f"{ascii_letters[-i-1]}{core_letters[-i-1]}" for i in range(ds)]     
-        norms += back.norm(
-            back.einsum(f"{core_letters},{','.join(contract_idx)}->{core_letters[:-ds]}{ascii_letters[-ds:]}",
-                        self.delta_core, *R)
-        ) ** 2
+        for i in range(ds):
+            norms += back.norm(
+                back.einsum(f"{core_letters},y{core_letters[dt + i]}->{core_letters[:dt + i]}y{core_letters[dt + i + 1:]}",
+                            self.delta_core, R)
+            ) ** 2
         return back.sqrt(norms)
 
     def linear_comb(self, a: float = 1, b: float = 1, xi: Union["TangentVector", None] = None):
