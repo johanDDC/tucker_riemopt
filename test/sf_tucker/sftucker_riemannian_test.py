@@ -143,7 +143,6 @@ class RiemoptTest(TestCase):
         assert np.allclose(back.to_numpy(dumb_point_combination.to_dense()),
                            back.to_numpy(wise_point_combination.construct().to_dense()), atol=1e-5)
 
-
     def testMatrixGrad(self):
         for num_shared_factors in [1, 3]:
             eye = back.ones((8, 8))
@@ -170,13 +169,13 @@ class RiemoptTest(TestCase):
 
             assert(np.allclose(back.to_numpy(eucl_grad), back.to_numpy(riem_grad.to_dense()), atol=1e-5))
             
-    def testNorm(self):
+    def testTangentVectorNorm(self):
         T = self.createTestTensor(4)
         tg_vector1, _ = SFTuckerRiemannian.grad(self.f, T)
         true_norm = tg_vector1.construct().norm(qr_based=True)
         computed_norm = tg_vector1.norm()
         
-        assert (true_norm - computed_norm) < 1e-5
+        assert (true_norm - computed_norm) / true_norm < 1e-5
 
 
 
