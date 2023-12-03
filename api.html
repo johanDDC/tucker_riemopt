@@ -313,7 +313,6 @@ document.write(`
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.tucker.riemannian.TangentVector"><code class="docutils literal notranslate"><span class="pre">TangentVector</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.tucker.riemannian.TangentVector.construct"><code class="docutils literal notranslate"><span class="pre">TangentVector.construct()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.tucker.riemannian.TangentVector.group_cores"><code class="docutils literal notranslate"><span class="pre">TangentVector.group_cores()</span></code></a></li>
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.tucker.riemannian.TangentVector.linear_comb"><code class="docutils literal notranslate"><span class="pre">TangentVector.linear_comb()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.tucker.riemannian.TangentVector.norm"><code class="docutils literal notranslate"><span class="pre">TangentVector.norm()</span></code></a></li>
 </ul>
 </li>
@@ -356,7 +355,6 @@ document.write(`
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.sf_tucker.riemannian.TangentVector"><code class="docutils literal notranslate"><span class="pre">TangentVector</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.sf_tucker.riemannian.TangentVector.construct"><code class="docutils literal notranslate"><span class="pre">TangentVector.construct()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.sf_tucker.riemannian.TangentVector.group_cores"><code class="docutils literal notranslate"><span class="pre">TangentVector.group_cores()</span></code></a></li>
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.sf_tucker.riemannian.TangentVector.linear_comb"><code class="docutils literal notranslate"><span class="pre">TangentVector.linear_comb()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.sf_tucker.riemannian.TangentVector.norm"><code class="docutils literal notranslate"><span class="pre">TangentVector.norm()</span></code></a></li>
 </ul>
 </li>
@@ -656,31 +654,6 @@ from R^N to R^M.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>Grouped core.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="tucker_riemopt.tucker.riemannian.TangentVector.linear_comb">
-<span class="sig-name descname"><span class="pre">linear_comb</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#tucker_riemopt.tucker.riemannian.TangentVector" title="tucker_riemopt.tucker.riemannian.TangentVector"><span class="pre">TangentVector</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tucker_riemopt.tucker.riemannian.TangentVector.linear_comb" title="Permalink to this definition">#</a></dt>
-<dd><dl class="simple">
-<dt>Compute linear combination of this tangent vector of <cite>X</cite> (<cite>self.point</cite>) with either other tangent vector <cite>xi</cite> or</dt><dd><p><cite>X</cite>. Although, linear combination may be obtained by addition operation of Tucker tensors, it is important to
-note, that such operation leads to rank increasing. For instance, if <cite>X</cite> rank is <cite>r</cite>, then ranks of its
-tangent vectors are <cite>2r</cite>, and thus, the rank of the result of taking linear combination by naive addition is
-<cite>4r</cite>. On the other hand, this function obtains linear combination efficiently without increase of the rank. The
-rank of the result is always <cite>2r</cite>.</p>
-</dd>
-</dl>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>a</strong> – Parameter of the linear combination.</p></li>
-<li><p><strong>b</strong> – Parameter of the linear combination.</p></li>
-<li><p><strong>xi</strong> – If <cite>None</cite>, that linear combination with manifold point <cite>X</cite> will be computed. With <cite>xi</cite> otherwise.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><cite>a * self + b * xi</cite> if <cite>xi</cite> is not <cite>None</cite> and <cite>a * self + b * self.point</cite> otherwise.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1057,31 +1030,6 @@ from R^N to R^M.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="tucker_riemopt.sf_tucker.riemannian.TangentVector.linear_comb">
-<span class="sig-name descname"><span class="pre">linear_comb</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#tucker_riemopt.sf_tucker.riemannian.TangentVector" title="tucker_riemopt.sf_tucker.riemannian.TangentVector"><span class="pre">TangentVector</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tucker_riemopt.sf_tucker.riemannian.TangentVector.linear_comb" title="Permalink to this definition">#</a></dt>
-<dd><dl class="simple">
-<dt>Compute linear combination of this tangent vector of <cite>X</cite> (<cite>self.point</cite>) with either other tangent vector <cite>xi</cite></dt><dd><p>or <cite>X</cite>. Although, linear combination may be obtained by addition operation of SF-Tucker tensors, it is
-important to note, that such operation leads to rank increasing. For instance, if <cite>X</cite> rank is <cite>r</cite>, then ranks
-of its tangent vectors are <cite>2r</cite>, ant thus, the rank of the result of taking linear combination by naive
-addition is <cite>4r</cite>. On the other hand, this function obtains linear combination efficiently without increase of
-the rank. The rank of the result is always <cite>2r</cite>.</p>
-</dd>
-</dl>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>a</strong> – Parameter of the linear combination.</p></li>
-<li><p><strong>b</strong> – Parameter of the linear combination.</p></li>
-<li><p><strong>xi</strong> – If <cite>None</cite>, that linear combination with manifold point <cite>X</cite> will be computed. With <cite>xi</cite> otherwise.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><cite>a * self + b * xi</cite> if <cite>xi</cite> is not <cite>None</cite> and <cite>a * self + b * self.point</cite> otherwise.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
 <dt class="sig sig-object py" id="tucker_riemopt.sf_tucker.riemannian.TangentVector.norm">
 <span class="sig-name descname"><span class="pre">norm</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tucker_riemopt.sf_tucker.riemannian.TangentVector.norm" title="Permalink to this definition">#</a></dt>
 <dd><p>Norm of tangent vector. This method is not differentiable as applies series of QR decompositions.</p>
@@ -1198,7 +1146,6 @@ vector of <cite>X</cite>. Also returns value <cite>f(X)</cite>.</p>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.tucker.riemannian.TangentVector"><code class="docutils literal notranslate"><span class="pre">TangentVector</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.tucker.riemannian.TangentVector.construct"><code class="docutils literal notranslate"><span class="pre">TangentVector.construct()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.tucker.riemannian.TangentVector.group_cores"><code class="docutils literal notranslate"><span class="pre">TangentVector.group_cores()</span></code></a></li>
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.tucker.riemannian.TangentVector.linear_comb"><code class="docutils literal notranslate"><span class="pre">TangentVector.linear_comb()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.tucker.riemannian.TangentVector.norm"><code class="docutils literal notranslate"><span class="pre">TangentVector.norm()</span></code></a></li>
 </ul>
 </li>
@@ -1241,7 +1188,6 @@ vector of <cite>X</cite>. Also returns value <cite>f(X)</cite>.</p>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.sf_tucker.riemannian.TangentVector"><code class="docutils literal notranslate"><span class="pre">TangentVector</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.sf_tucker.riemannian.TangentVector.construct"><code class="docutils literal notranslate"><span class="pre">TangentVector.construct()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.sf_tucker.riemannian.TangentVector.group_cores"><code class="docutils literal notranslate"><span class="pre">TangentVector.group_cores()</span></code></a></li>
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.sf_tucker.riemannian.TangentVector.linear_comb"><code class="docutils literal notranslate"><span class="pre">TangentVector.linear_comb()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tucker_riemopt.sf_tucker.riemannian.TangentVector.norm"><code class="docutils literal notranslate"><span class="pre">TangentVector.norm()</span></code></a></li>
 </ul>
 </li>
