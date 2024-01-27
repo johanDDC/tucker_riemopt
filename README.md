@@ -7,8 +7,7 @@ optimization on the manifolds of tensors of fixed Tucker rank or fixed SF-Tucker
 For instance, package implements a method for efficiently computing the Riemannian
 gradient of any smooth function via automatic differentiation.
 
-The library is compatible with several computation frameworks, such as PyTorch and
-JAX, and can be easily integrated with other frameworks.
+The library is compatible with several computation frameworks, such as PyTorch and JAX, and can be easily integrated with other frameworks.
 
 ## Installation
 NumPy, SciPy and [opt-einsum](https://pypi.org/project/opt-einsum/)
