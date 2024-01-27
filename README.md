@@ -51,5 +51,9 @@ See `examples` folder to dive into `tucker_riemopt` basics.
 
 Detailed information may be found [here](https://johanddc.github.io/tucker_riemopt/).
 
+## Contribution policy
+
+We warmly welcome contributions from all developers, provided that they are willing to adhere to the [GitFlow workflow](https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow).
+
 ## License
 MIT License
