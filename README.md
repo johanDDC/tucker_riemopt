@@ -9,15 +9,36 @@ gradient of any smooth function via automatic differentiation.
 
 The library is compatible with several computation frameworks, such as PyTorch and
 JAX, and can be easily integrated with other frameworks.
+
 ## Installation
-NumPy, SciPy, PyTorch and [opt-einsum](https://pypi.org/project/opt-einsum/)
+NumPy, SciPy and [opt-einsum](https://pypi.org/project/opt-einsum/)
 are required for installation. Additionally, you need to install your special
-computation framework (e.g. JAX).
-## Quick start
+computation framework: PyTorch or JAX.
+
+Package may be installed using
+
+`pip install tucker_riemopt[torch/jax]`
+
+with corresponding computation framework.
+
+## Use cases
+See [this repository](https://github.com/johanDDC/R-TuckER) for examples of package usage.
+
+Default computation framework is PyTorch. For using JAX you should
+
+1. Install JAX;
+2. Enable JAX backend using
+
+```python
+from tucker_riemopt import set_backend
+set_backend("jax")
+```
+
+<!-- ## Quick start
 See `examples` folder to dive into `tucker_riemopt` basics.
 
 * [backend](https://github.com/johanDDC/tucker_riemopt/blob/master/examples/backend.ipynb) notebook contains a guide, how to use different computational frameworks for both routine operations and computations requires autodiff;
-* [eigenvalues](https://github.com/johanDDC/tucker_riemopt/blob/master/examples/eigenvalues.ipynb) notebook contains a basic guide for performing riemannian optimization on manifold of tensors of fixed multilinear rank using this package;
+* [eigenvalues](https://github.com/johanDDC/tucker_riemopt/blob/master/examples/eigenvalues.ipynb) notebook contains a basic guide for performing riemannian optimization on manifold of tensors of fixed multilinear rank using this package; -->
 
 [//]: # (## Structure overview)
 
@@ -32,4 +53,3 @@ Detailed information may be found [here](https://johanddc.github.io/tucker_riemo
 
 ## License
 MIT License
-
