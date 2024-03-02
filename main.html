@@ -305,25 +305,32 @@ for implementing first-order optimization methods of the Riemannian
 optimization on the manifolds of tensors of fixed Tucker rank or fixed SF-Tucker rank.
 For instance, package implements a method for efficiently computing the Riemannian
 gradient of any smooth function via automatic differentiation.</p>
-<p>The library is compatible with several computation frameworks, such as PyTorch and
-JAX, and can be easily integrated with other frameworks.</p>
+<p>The library is compatible with several computation frameworks, such as PyTorch and JAX,
+and can be easily integrated with other frameworks.</p>
 <section id="installation">
 <h1>Installation<a class="headerlink" href="#installation" title="Permalink to this heading">#</a></h1>
-<p>NumPy, SciPy, PyTorch and <a class="reference external" href="https://pypi.org/project/opt-einsum/">opt-einsum</a>
+<p>NumPy, SciPy and [opt-einsum](<a class="reference external" href="https://pypi.org/project/opt-einsum/">https://pypi.org/project/opt-einsum/</a>)
 are required for installation. Additionally, you need to install your special
-computation framework (e.g. JAX).</p>
-<p>Install <cite>tucker_riemopt</cite> from PyPi:</p>
+computation framework: PyTorch or JAX.</p>
+<p>Package may be installed using</p>
+<p><cite>pip install tucker_riemopt[torch/jax]</cite></p>
+<p>with corresponding computation framework.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">TBD</span>
 </pre></div>
 </div>
 </section>
 <section id="quick-start">
 <h1>Quick start<a class="headerlink" href="#quick-start" title="Permalink to this heading">#</a></h1>
-<p>See <a class="reference external" href="https://github.com/johanDDC/tucker_riemopt/tree/master/examples">examples</a> to dive into <cite>tucker_riemopt</cite> basics.</p>
+<p>See the following repositories as a reference of the usage of the package:</p>
 <ul class="simple">
-<li><p><a class="reference external" href="https://github.com/johanDDC/tucker_riemopt/blob/master/examples/backend.ipynb">backend</a> notebook contains a guide, how to use different computational frameworks for both routine operations and computations requires autodiff;</p></li>
-<li><p><a class="reference external" href="https://github.com/johanDDC/tucker_riemopt/blob/master/examples/eigenvalues.ipynb">eigenvalues</a> notebook contains a basic guide for performing riemannian optimization on manifold of tensors of fixed multilinear rank using this package;</p></li>
+<li><p>[This repository](<a class="github reference external" href="https://github.com/johanDDC/R-TuckER">johanDDC/R-TuckER</a>) uses the package for knowledge graph completion task;</p></li>
+<li><p>[This repository](<a class="reference external" href="https://bitbucket.org/johan_ddc/bert_imdb/src/master/">https://bitbucket.org/johan_ddc/bert_imdb/src/master/</a>) uses the library for BERT compression;</p></li>
 </ul>
+<p>Default computation framework is PyTorch. For using JAX you should</p>
+<ol class="arabic simple">
+<li><p>Install JAX;</p></li>
+<li><p>Enable JAX backend using</p></li>
+</ol>
 </section>
 
 
@@ -397,7 +404,7 @@ By JohanDDC
 
   <p class="copyright">
     
-      © Copyright 2023, JohanDDC.
+      © Copyright 2024, JohanDDC.
       <br/>
     
   </p>
