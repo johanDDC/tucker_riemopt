@@ -21,7 +21,11 @@ Package may be installed using
 with corresponding computation framework.
 
 ## Use cases
-See [this repository](https://github.com/johanDDC/R-TuckER) for examples of package usage.
+
+See the following repositories as a reference of the usage of the package:
+
+* [This repository](https://github.com/johanDDC/R-TuckER) uses the package for knowledge graph completion task;
+* [This repository](https://bitbucket.org/johan_ddc/bert_imdb/src/master/) uses the library for BERT compression;
 
 Default computation framework is PyTorch. For using JAX you should
 
