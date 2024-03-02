@@ -12,7 +12,7 @@ sys.path.insert(0, os.path.abspath('..'))
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = 'tucker_riemopt'
-copyright = '2023, JohanDDC'
+copyright = '2024, JohanDDC'
 author = 'JohanDDC'
 release = '1.0.1'
 
